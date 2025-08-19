@@ -18,7 +18,6 @@
 ```
 Runtime/
   Core/         # 框架核心（模块基类、事件总线、依赖、异常等）
-  Examples/     # 示例模块与脚本
   Utils/        # 日志等工具
 Editor/
   FrameworkDebugger/  # 事件流可视化、性能监控等调试工具
