@@ -33,7 +33,7 @@ namespace CnoomFramework.Core.Attributes
         /// <summary>
         ///     优先级，数值越小优先级越高
         /// </summary>
-        public int Priority { get; set; } = 0;
+        public int Priority { get; set; } = 1;
 
         /// <summary>
         ///     是否异步处理
