@@ -62,4 +62,4 @@ Editor/
 
 ## 许可证
 
-本项目基于 MIT License 开源，详见 [LICENSE.md](LICENSE.md)。
+本项目基于 MIT License 开源，详见 [LICENSE](LICENSE)。
