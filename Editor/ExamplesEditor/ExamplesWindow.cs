@@ -1,3 +1,4 @@
+using CnoomFramework.Editor.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -5,7 +6,9 @@ namespace CnoomFramework.Editor.ExamplesEditor
 {
     public class ExamplesWindow : EditorWindow
     {
-        [MenuItem("CnoomFramework/示例/打开示例窗口")]
+        public const string MenuPath = FrameworkEditorConfig.MenuPath + "/示例/打开示例窗口";
+
+        [MenuItem(MenuPath)]
         public static void ShowWindow()
         {
             GetWindow<ExamplesWindow>("Cnoom 示例");

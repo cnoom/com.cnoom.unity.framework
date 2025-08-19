@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CnoomFramework.Core;
 using CnoomFramework.Core.Mock;
+using CnoomFramework.Editor.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class MockManagerWindow : EditorWindow
     {
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "Mock 管理";
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;
         private GUIStyle _headerStyle;
@@ -21,7 +23,7 @@ namespace CnoomFramework.Editor
         private GUIStyle _buttonStyle;
         private Dictionary<Type, bool> _moduleFoldouts = new Dictionary<Type, bool>();
 
-        [MenuItem("Window/CnoomFramework/Mock Manager")]
+        [MenuItem(MenuPath)]
         public static void ShowWindow()
         {
             var window = GetWindow<MockManagerWindow>("Mock Manager");

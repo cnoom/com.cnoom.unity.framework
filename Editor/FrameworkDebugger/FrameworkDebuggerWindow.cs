@@ -6,6 +6,7 @@ using CnoomFramework.Core.Attributes;
 using CnoomFramework.Core.Config;
 using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Performance;
+using CnoomFramework.Editor.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,6 +27,8 @@ namespace CnoomFramework.Editor
             Dependencies,
             Performance
         }
+
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "框架调试器";
 
         private TabType _selectedTab = TabType.Overview;
         private Vector2 _scrollPosition;
@@ -82,8 +85,13 @@ namespace CnoomFramework.Editor
         // 依赖关系相关
         private Dictionary<string, List<string>> _moduleDependencies = new Dictionary<string, List<string>>();
         private Dictionary<string, List<string>> _moduleDependents = new Dictionary<string, List<string>>();
-        private Dictionary<string, DependencyAnalyzer.DependencyInfo> _dependencyInfos = new Dictionary<string, DependencyAnalyzer.DependencyInfo>();
-        private List<DependencyAnalyzer.CircularDependencyInfo> _circularDependencies = new List<DependencyAnalyzer.CircularDependencyInfo>();
+
+        private Dictionary<string, DependencyAnalyzer.DependencyInfo> _dependencyInfos =
+            new Dictionary<string, DependencyAnalyzer.DependencyInfo>();
+
+        private List<DependencyAnalyzer.CircularDependencyInfo> _circularDependencies =
+            new List<DependencyAnalyzer.CircularDependencyInfo>();
+
         private bool _showDependencyGraph = true;
         private bool _showCircularDependencies = true;
         private bool _showInitializationOrder = true;
@@ -115,7 +123,7 @@ namespace CnoomFramework.Editor
             public object EventData;
         }
 
-        [MenuItem("Window/CnoomFramework/Framework Debugger")]
+        [MenuItem(MenuPath)]
         public static void ShowWindow()
         {
             var window = GetWindow<FrameworkDebuggerWindow>("Framework Debugger");
@@ -159,9 +167,10 @@ namespace CnoomFramework.Editor
                         RefreshConfigValues();
                         RefreshPerformanceData();
                     }
-                    
+
                     // 自动刷新性能数据
-                    if (_autoRefreshPerformance && Time.realtimeSinceStartup - _lastPerformanceRefreshTime > _performanceRefreshInterval)
+                    if (_autoRefreshPerformance && Time.realtimeSinceStartup - _lastPerformanceRefreshTime >
+                        _performanceRefreshInterval)
                     {
                         RefreshPerformanceData();
                         _lastPerformanceRefreshTime = Time.realtimeSinceStartup;
@@ -266,7 +275,7 @@ namespace CnoomFramework.Editor
 
             _modules.Clear();
             _modules.AddRange(FrameworkManager.Instance.Modules);
-            
+
             // 更新依赖关系
             UpdateModuleDependencies();
         }
@@ -280,20 +289,21 @@ namespace CnoomFramework.Editor
             {
                 var moduleType = module.GetType();
                 var dependsOnAttributes = moduleType.GetCustomAttributes(typeof(DependsOnAttribute), true);
-                
+
                 var dependencies = new List<string>();
                 foreach (DependsOnAttribute dependsOn in dependsOnAttributes)
                 {
                     dependencies.Add(dependsOn.ModuleType.Name);
-                    
+
                     // 更新被依赖的模块
                     if (!_moduleDependents.ContainsKey(dependsOn.ModuleType.Name))
                     {
                         _moduleDependents[dependsOn.ModuleType.Name] = new List<string>();
                     }
+
                     _moduleDependents[dependsOn.ModuleType.Name].Add(module.Name);
                 }
-                
+
                 _moduleDependencies[module.Name] = dependencies;
             }
 
@@ -716,9 +726,9 @@ namespace CnoomFramework.Editor
             }
 
             EditorGUILayout.EndHorizontal();
-            
+
             EditorGUILayout.Space();
-            
+
             EditorGUILayout.BeginHorizontal();
 
             if (GUILayout.Button("清除事件日志", _buttonStyle))
@@ -742,18 +752,18 @@ namespace CnoomFramework.Editor
                     }
                 }
             }
-            
+
             EditorGUILayout.EndHorizontal();
-            
+
             EditorGUILayout.Space();
-            
+
             EditorGUILayout.BeginHorizontal();
-            
+
             if (GUILayout.Button("打开事件流可视化", _buttonStyle))
             {
                 EventFlowVisualizerWindow.ShowWindow();
             }
-            
+
             if (GUILayout.Button("打开性能监控", _buttonStyle))
             {
                 PerformanceMonitorWindow.ShowWindow();
@@ -763,7 +773,7 @@ namespace CnoomFramework.Editor
             {
                 EnhancedPerformanceMonitorWindow.ShowWindow();
             }
-            
+
             GUI.enabled = true;
 
             EditorGUILayout.EndHorizontal();
@@ -872,6 +882,7 @@ namespace CnoomFramework.Editor
                         GUILayout.Box("●", GUILayout.Width(20));
                         break;
                 }
+
                 GUI.color = Color.white;
 
                 if (GUILayout.Toggle(_selectedModuleIndex == i, module.Name, EditorStyles.radioButton))
@@ -930,6 +941,7 @@ namespace CnoomFramework.Editor
                         EditorGUILayout.LabelField("已关闭");
                         break;
                 }
+
                 GUI.color = Color.white;
                 EditorGUILayout.EndHorizontal();
 
@@ -963,7 +975,8 @@ namespace CnoomFramework.Editor
                 EditorGUILayout.BeginVertical(_boxStyle);
                 GUILayout.Label("模块依赖", _subHeaderStyle);
 
-                var dependsOnAttributes = selectedModule.GetType().GetCustomAttributes(typeof(DependsOnAttribute), true);
+                var dependsOnAttributes =
+                    selectedModule.GetType().GetCustomAttributes(typeof(DependsOnAttribute), true);
 
                 if (dependsOnAttributes.Length > 0)
                 {
@@ -1176,7 +1189,7 @@ namespace CnoomFramework.Editor
                 GUILayout.Label("建议的初始化顺序", _subHeaderStyle);
 
                 var initializationOrder = DependencyAnalyzer.GetInitializationOrder(_dependencyInfos);
-                
+
                 if (initializationOrder.Count > 0)
                 {
                     for (int i = 0; i < initializationOrder.Count; i++)
@@ -1184,13 +1197,13 @@ namespace CnoomFramework.Editor
                         EditorGUILayout.BeginHorizontal(_moduleBoxStyle);
                         EditorGUILayout.LabelField($"{i + 1}.", GUILayout.Width(30));
                         EditorGUILayout.LabelField(initializationOrder[i]);
-                        
+
                         // 显示依赖深度
                         if (_dependencyInfos.TryGetValue(initializationOrder[i], out var info))
                         {
                             EditorGUILayout.LabelField($"深度: {info.DependencyDepth}", GUILayout.Width(80));
                         }
-                        
+
                         EditorGUILayout.EndHorizontal();
                     }
                 }
@@ -1522,8 +1535,10 @@ namespace CnoomFramework.Editor
             }
 
             _showDependencyGraph = GUILayout.Toggle(_showDependencyGraph, "显示依赖图", EditorStyles.toolbarButton);
-            _showCircularDependencies = GUILayout.Toggle(_showCircularDependencies, "显示循环依赖", EditorStyles.toolbarButton);
-            _showInitializationOrder = GUILayout.Toggle(_showInitializationOrder, "显示初始化顺序", EditorStyles.toolbarButton);
+            _showCircularDependencies =
+                GUILayout.Toggle(_showCircularDependencies, "显示循环依赖", EditorStyles.toolbarButton);
+            _showInitializationOrder =
+                GUILayout.Toggle(_showInitializationOrder, "显示初始化顺序", EditorStyles.toolbarButton);
 
             GUILayout.FlexibleSpace();
 
@@ -1547,7 +1562,8 @@ namespace CnoomFramework.Editor
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("总依赖数:", totalDependencies.ToString());
-            EditorGUILayout.LabelField("平均依赖数:", totalModules > 0 ? (totalDependencies / (float)totalModules).ToString("F1") : "0");
+            EditorGUILayout.LabelField("平均依赖数:",
+                totalModules > 0 ? (totalDependencies / (float)totalModules).ToString("F1") : "0");
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
@@ -1564,6 +1580,7 @@ namespace CnoomFramework.Editor
                 EditorGUILayout.LabelField("✓ 无循环依赖");
                 GUI.color = Color.white;
             }
+
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
@@ -1608,6 +1625,7 @@ namespace CnoomFramework.Editor
                         GUILayout.Box("已关闭", GUILayout.Width(60));
                         break;
                 }
+
                 GUI.color = Color.white;
 
                 EditorGUILayout.EndHorizontal();
@@ -1643,7 +1661,7 @@ namespace CnoomFramework.Editor
                 {
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("依赖深度:", dependencyInfo.DependencyDepth.ToString());
-                    
+
                     if (dependencyInfo.HasCircularDependency)
                     {
                         GUI.color = Color.red;
@@ -1656,6 +1674,7 @@ namespace CnoomFramework.Editor
                         EditorGUILayout.LabelField("✓ 无循环依赖");
                         GUI.color = Color.white;
                     }
+
                     EditorGUILayout.EndHorizontal();
                 }
 
@@ -1694,7 +1713,8 @@ namespace CnoomFramework.Editor
             if (_autoRefreshPerformance)
             {
                 GUILayout.Label("刷新间隔:", GUILayout.Width(60));
-                _performanceRefreshInterval = EditorGUILayout.Slider(_performanceRefreshInterval, 0.5f, 10.0f, GUILayout.Width(100));
+                _performanceRefreshInterval =
+                    EditorGUILayout.Slider(_performanceRefreshInterval, 0.5f, 10.0f, GUILayout.Width(100));
             }
 
             _showPerformanceDetails = GUILayout.Toggle(_showPerformanceDetails, "显示详情", EditorStyles.toolbarButton);

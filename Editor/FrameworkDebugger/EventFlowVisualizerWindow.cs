@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CnoomFramework.Core;
 using CnoomFramework.Core.Events;
+using CnoomFramework.Editor.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class EventFlowVisualizerWindow : EditorWindow
     {
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "事件流程可视化器";
+
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;
         private GUIStyle _headerStyle;
@@ -77,7 +80,7 @@ namespace CnoomFramework.Editor
             public bool IsAsync;
         }
 
-        [MenuItem("Window/CnoomFramework/Event Flow Visualizer")]
+        [MenuItem(MenuPath)]
         public static void ShowWindow()
         {
             var window = GetWindow<EventFlowVisualizerWindow>("Event Flow Visualizer");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CnoomFramework.Core;
 using CnoomFramework.Core.Performance;
+using CnoomFramework.Editor.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class EnhancedPerformanceMonitorWindow : EditorWindow
     {
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "性能监控器2";
+        
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;
         private GUIStyle _headerStyle;
@@ -53,7 +56,7 @@ namespace CnoomFramework.Editor
             public string Message;
         }
 
-        [MenuItem("Window/CnoomFramework/Enhanced Performance Monitor")]
+        [MenuItem(MenuPath)]
         public static void ShowWindow()
         {
             var window = GetWindow<EnhancedPerformanceMonitorWindow>("Enhanced Performance Monitor");
