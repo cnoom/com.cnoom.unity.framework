@@ -15,7 +15,7 @@
 ### 更改
 - 更新 `package.json` 版本至 `1.0.1`。
 
-[1.0.1]: https://github.com/cnoom/com.cnoom.unity.framework.git/compare/v1.0.0...v1.0.1
+[1.0.1]: https://github.com/cnoom/com.cnoom.unity.framework/compare/v1.0.0...v1.0.1
 
 ## [1.0.0] - 2025-08-19
 ### 新增
@@ -37,4 +37,4 @@
 ### 更改
 - 无
 
-[1.0.0]: https://github.com/cnoom/com.cnoom.unity.framework.git/compare/v0.0.0...v1.0.0
+[1.0.0]: https://github.com/cnoom/com.cnoom.unity.framework/compare/v0.0.0...v1.0.0
