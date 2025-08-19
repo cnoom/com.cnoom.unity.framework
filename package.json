@@ -1,0 +1,30 @@
+{
+  "name": "com.cnoom.unity.framework",
+  "version": "1.0.0",
+  "displayName": "Cnoom Unity Framework",
+  "description": "一个为个人独立游戏开发设计的Unity通用基础框架，包含UI管理、资源加载、事件系统、配置管理和日志服务等核心功能。",
+  "unity": "2022.3",
+  "unityRelease": "0f1",
+  "documentationUrl": "https://github.com/cnoom/unity-framework",
+  "changelogUrl": "https://github.com/cnoom/unity-framework/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/cnoom/unity-framework/blob/main/LICENSE.md",
+  "dependencies": {
+    "com.unity.addressables": "1.19.19",
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  },
+  "keywords": [
+    "framework",
+    "ui",
+    "resource",
+    "event",
+    "config",
+    "log",
+    "indie",
+    "game"
+  ],
+  "author": {
+    "name": "Cnoom",
+    "email": "cnoom@example.com",
+    "url": "https://github.com/cnoom"
+  }
+}
