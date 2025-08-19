@@ -11,6 +11,7 @@ using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Exceptions;
 using CnoomFramework.Core.Mock;
 using CnoomFramework.Core.Performance;
+using CnoomFrameWork.Singleton;
 using UnityEngine;
 
 namespace CnoomFramework.Core
@@ -18,10 +19,8 @@ namespace CnoomFramework.Core
     /// <summary>
     ///     框架管理器，核心单例类
     /// </summary>
-    public class FrameworkManager : MonoBehaviour
+    public class FrameworkManager : PersistentMonoSingleton<FrameworkManager>
     {
-        private static FrameworkManager _instance;
-        private static readonly object _lock = new();
 
         [SerializeField] private bool _autoInitialize = true;
         [SerializeField] private bool _enableDebugLog = true;
@@ -36,24 +35,7 @@ namespace CnoomFramework.Core
         private int _eventBusMaxAsyncPerFrame = 64;
         private int _eventBusMaxCached = 1000;
         private bool _isShuttingDown;
-
-        /// <summary>
-        ///     单例实例
-        /// </summary>
-        public static FrameworkManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    lock (_lock)
-                    {
-                        if (_instance == null) CreateInstance();
-                    }
-
-                return _instance;
-            }
-        }
-
+        
         /// <summary>
         ///     事件总线
         /// </summary>
@@ -89,19 +71,9 @@ namespace CnoomFramework.Core
         /// </summary>
         public IReadOnlyList<IModule> Modules => _sortedModules.AsReadOnly();
 
-        private void Awake()
+        protected override void OnInitialized()
         {
-            if (_instance == null)
-            {
-                _instance = this;
-                DontDestroyOnLoad(gameObject);
-
-                if (_autoInitialize) Initialize();
-            }
-            else if (_instance != this)
-            {
-                Destroy(gameObject);
-            }
+            if (_autoInitialize) Initialize();
         }
 
         private void Update()
@@ -112,7 +84,7 @@ namespace CnoomFramework.Core
 
         private void OnDestroy()
         {
-            if (_instance == this) Shutdown();
+            Shutdown();
         }
 
         private void OnApplicationFocus(bool hasFocus)
@@ -130,17 +102,7 @@ namespace CnoomFramework.Core
             else
                 OnApplicationResumed();
         }
-
-        /// <summary>
-        ///     创建单例实例
-        /// </summary>
-        private static void CreateInstance()
-        {
-            var go = new GameObject("FrameworkManager");
-            _instance = go.AddComponent<FrameworkManager>();
-            DontDestroyOnLoad(go);
-        }
-
+        
         /// <summary>
         ///     初始化框架
         /// </summary>
