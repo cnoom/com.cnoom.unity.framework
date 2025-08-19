@@ -121,7 +121,7 @@ namespace CnoomFramework.Core.Contracts
         /// <summary>
         ///     验证事件
         /// </summary>
-        public bool ValidateEvent<T>(T eventData) where T : class
+        public bool ValidateEvent<T>(T eventData) where T : notnull
         {
             var result = ContractValidator.ValidateEvent(eventData);
             if (!result.IsValid)
@@ -143,8 +143,6 @@ namespace CnoomFramework.Core.Contracts
         ///     验证请求
         /// </summary>
         public bool ValidateRequest<TRequest, TResponse>(TRequest request)
-            where TRequest : class
-            where TResponse : class
         {
             var result = ContractValidator.ValidateRequest<TRequest, TResponse>(request);
             if (!result.IsValid)
@@ -167,8 +165,6 @@ namespace CnoomFramework.Core.Contracts
         ///     验证响应
         /// </summary>
         public bool ValidateResponse<TRequest, TResponse>(TResponse response)
-            where TRequest : class
-            where TResponse : class
         {
             var result = ContractValidator.ValidateResponse<TRequest, TResponse>(response);
             if (!result.IsValid)

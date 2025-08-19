@@ -51,7 +51,7 @@ namespace CnoomFramework.Core.Contracts
         }
 
         /// <inheritdoc />
-        public ContractValidationResult ValidateEvent<T>(T eventData) where T : class
+        public ContractValidationResult ValidateEvent<T>(T eventData) where T : notnull
         {
             if (!_isEnabled)
                 return ContractValidationResult.Valid;
@@ -71,8 +71,6 @@ namespace CnoomFramework.Core.Contracts
 
         /// <inheritdoc />
         public ContractValidationResult ValidateRequest<TRequest, TResponse>(TRequest request)
-            where TRequest : class
-            where TResponse : class
         {
             if (!_isEnabled)
                 return ContractValidationResult.Valid;
@@ -93,8 +91,6 @@ namespace CnoomFramework.Core.Contracts
 
         /// <inheritdoc />
         public ContractValidationResult ValidateResponse<TRequest, TResponse>(TResponse response)
-            where TRequest : class
-            where TResponse : class
         {
             if (!_isEnabled)
                 return ContractValidationResult.Valid;

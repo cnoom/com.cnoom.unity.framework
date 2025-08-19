@@ -41,7 +41,7 @@ namespace CnoomFramework.Core.Contracts
         /// <typeparam name="T">事件类型</typeparam>
         /// <param name="eventData">事件数据</param>
         /// <returns>验证结果</returns>
-        ContractValidationResult ValidateEvent<T>(T eventData) where T : class;
+        ContractValidationResult ValidateEvent<T>(T eventData) where T : notnull;
 
         /// <summary>
         ///     验证请求是否符合契约
@@ -50,9 +50,7 @@ namespace CnoomFramework.Core.Contracts
         /// <typeparam name="TResponse">响应类型</typeparam>
         /// <param name="request">请求数据</param>
         /// <returns>验证结果</returns>
-        ContractValidationResult ValidateRequest<TRequest, TResponse>(TRequest request)
-            where TRequest : class
-            where TResponse : class;
+        ContractValidationResult ValidateRequest<TRequest, TResponse>(TRequest request);
 
         /// <summary>
         ///     验证响应是否符合契约
@@ -61,9 +59,7 @@ namespace CnoomFramework.Core.Contracts
         /// <typeparam name="TResponse">响应类型</typeparam>
         /// <param name="response">响应数据</param>
         /// <returns>验证结果</returns>
-        ContractValidationResult ValidateResponse<TRequest, TResponse>(TResponse response)
-            where TRequest : class
-            where TResponse : class;
+        ContractValidationResult ValidateResponse<TRequest, TResponse>(TResponse response);
 
         /// <summary>
         ///     启用或禁用契约验证

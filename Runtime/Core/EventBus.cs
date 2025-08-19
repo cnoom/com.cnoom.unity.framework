@@ -52,7 +52,7 @@ namespace CnoomFramework.Core
         /// <summary>
         ///     发布事件
         /// </summary>
-        public void Publish<T>(T eventData) where T : class
+        public void Publish<T>(T eventData) where T : notnull
         {
             if (eventData == null) return;
 
@@ -104,12 +104,12 @@ namespace CnoomFramework.Core
         /// <summary>
         ///     订阅事件
         /// </summary>
-        public void Subscribe<T>(Action<T> handler) where T : class
+        public void Subscribe<T>(Action<T> handler,int priority) where T : notnull
         {
             if (handler == null) return;
 
             var eventType = typeof(T);
-            var eventHandler = new GenericEventHandler(handler, 0, false);
+            var eventHandler = new GenericEventHandler(handler, priority, false);
 
             lock (_lockObject)
             {
@@ -128,7 +128,7 @@ namespace CnoomFramework.Core
         /// <summary>
         ///     取消订阅事件
         /// </summary>
-        public void Unsubscribe<T>(Action<T> handler) where T : class
+        public void Unsubscribe<T>(Action<T> handler) where T : notnull
         {
             if (handler == null) return;
 
@@ -152,10 +152,8 @@ namespace CnoomFramework.Core
         ///     请求-响应模式
         /// </summary>
         public TResponse Request<TRequest, TResponse>(TRequest request)
-            where TRequest : class
-            where TResponse : class
         {
-            if (request == null) return null;
+            if (request == null) return default;
 
             var requestType = typeof(TRequest);
             var operationName = $"EventBus.Request.{requestType.Name}";
@@ -184,7 +182,7 @@ namespace CnoomFramework.Core
                     }
 
                 Debug.LogWarning($"No handler registered for request type {requestType.Name}");
-                return null;
+                return default;
             });
         }
 
@@ -192,8 +190,6 @@ namespace CnoomFramework.Core
         ///     注册请求处理器
         /// </summary>
         public void RegisterRequestHandler<TRequest, TResponse>(Func<TRequest, TResponse> handler)
-            where TRequest : class
-            where TResponse : class
         {
             if (handler == null) return;
 
@@ -205,8 +201,6 @@ namespace CnoomFramework.Core
         ///     取消注册请求处理器
         /// </summary>
         public void UnregisterRequestHandler<TRequest, TResponse>()
-            where TRequest : class
-            where TResponse : class
         {
             var requestType = typeof(TRequest);
             _requestHandlers.TryRemove(requestType, out _);
@@ -396,7 +390,7 @@ namespace CnoomFramework.Core
         /// <summary>
         ///     验证事件契约
         /// </summary>
-        private void ValidateEventContract<T>(T eventData) where T : class
+        private void ValidateEventContract<T>(T eventData) where T : notnull
         {
             try
             {
@@ -420,8 +414,6 @@ namespace CnoomFramework.Core
         ///     验证请求契约
         /// </summary>
         private void ValidateRequestContract<TRequest, TResponse>(TRequest request)
-            where TRequest : class
-            where TResponse : class
         {
             try
             {
@@ -445,8 +437,6 @@ namespace CnoomFramework.Core
         ///     验证响应契约
         /// </summary>
         private void ValidateResponseContract<TRequest, TResponse>(TResponse response)
-            where TRequest : class
-            where TResponse : class
         {
             try
             {
@@ -578,7 +568,7 @@ namespace CnoomFramework.Core
                 _handler?.DynamicInvoke(eventData);
             }
 
-            public bool EqualsDelegate<T>(Action<T> action) where T : class
+            public bool EqualsDelegate<T>(Action<T> action) where T : notnull
             {
                 return _handler != null && _handler.Equals(action);
             }
