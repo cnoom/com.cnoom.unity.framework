@@ -14,7 +14,7 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class EnhancedPerformanceMonitorWindow : EditorWindow
     {
-        private const string MenuPath = FrameworkEditorConfig.MenuPath + "性能监控器2";
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "/" +"性能监控器2";
         
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;

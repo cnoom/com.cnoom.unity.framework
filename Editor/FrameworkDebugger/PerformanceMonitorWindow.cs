@@ -15,7 +15,7 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class PerformanceMonitorWindow : EditorWindow
     {
-        private const string MenuPath = FrameworkEditorConfig.MenuPath + "性能监视器";
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "/" + "性能监视器";
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;
         private GUIStyle _headerStyle;
@@ -365,7 +365,7 @@ namespace CnoomFramework.Editor
         {
             // 安全检查，确保在编辑模式下不会尝试访问FrameworkManager
             bool canAccessFramework = Application.isPlaying && _isFrameworkInitialized;
-            
+
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
             if (GUILayout.Button("刷新", EditorStyles.toolbarButton))
@@ -544,10 +544,10 @@ namespace CnoomFramework.Editor
 
                 // 表头行
                 EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-                
+
                 // 为颜色标记留出空间
                 GUILayout.Space(16);
-                
+
                 // 列标题
                 GUILayout.Label("操作名称", EditorStyles.toolbarButton, GUILayout.Width(columnWidths[0]));
                 GUILayout.Label("调用次数", EditorStyles.toolbarButton, GUILayout.Width(columnWidths[1]));
@@ -557,7 +557,7 @@ namespace CnoomFramework.Editor
                 GUILayout.Label("最大时间 (ms)", EditorStyles.toolbarButton, GUILayout.Width(columnWidths[5]));
                 GUILayout.Label("最近时间 (ms)", EditorStyles.toolbarButton, GUILayout.Width(columnWidths[6]));
                 GUILayout.Label("操作", EditorStyles.toolbarButton, GUILayout.Width(columnWidths[7] + columnWidths[8]));
-                
+
                 EditorGUILayout.EndHorizontal();
 
                 // 绘制操作数据
@@ -658,7 +658,7 @@ namespace CnoomFramework.Editor
             {
                 displayName = operationName.Substring(dotIndex + 1);
             }
-            
+
             // 绘制操作数据行
             EditorGUILayout.BeginHorizontal();
 
@@ -692,10 +692,10 @@ namespace CnoomFramework.Editor
 
             // 按钮区域
             EditorGUILayout.BeginHorizontal(GUILayout.Width(columnWidths[7] + columnWidths[8]));
-            
+
             // 安全检查，确保在编辑模式下不会尝试访问FrameworkManager
             bool canAccessFramework = Application.isPlaying && _isFrameworkInitialized;
-            
+
             // 重置按钮
             if (GUILayout.Button("重置", _buttonStyle, GUILayout.Width(columnWidths[7])))
             {
@@ -722,7 +722,7 @@ namespace CnoomFramework.Editor
             {
                 _selectedOperation = operationName == _selectedOperation ? null : operationName;
             }
-            
+
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndHorizontal();
 
@@ -804,16 +804,16 @@ namespace CnoomFramework.Editor
             // 创建最终的列宽度数组
             float[] columnWidths = new float[baseColumnWidths.Length];
             columnWidths[0] = firstColumnWidth;
-            
+
             // 复制其他列的宽度
             for (int i = 1; i < baseColumnWidths.Length; i++)
             {
                 columnWidths[i] = baseColumnWidths[i];
             }
-            
+
             return columnWidths;
         }
-        
+
         private void DrawTimeSeriesChart(string operationName)
         {
             if (!_timeSeriesData.ContainsKey(operationName) || _timeSeriesData[operationName].Count == 0)
@@ -823,20 +823,20 @@ namespace CnoomFramework.Editor
 
             var timeSeriesData = _timeSeriesData[operationName];
             var rect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth - 40, _chartHeight);
-            
+
             // 计算最大值和最小值
             float maxValue = timeSeriesData.Max();
             float minValue = timeSeriesData.Min();
-            
+
             // 确保有一定的范围
             if (Mathf.Approximately(maxValue, minValue))
             {
                 maxValue = minValue + 1.0f;
             }
-            
+
             // 绘制背景
             EditorGUI.DrawRect(rect, new Color(0.2f, 0.2f, 0.2f));
-            
+
             // 绘制网格线
             int gridLines = 4;
             for (int i = 1; i < gridLines; i++)
@@ -844,41 +844,45 @@ namespace CnoomFramework.Editor
                 float y = rect.y + rect.height * (1.0f - (float)i / gridLines);
                 Handles.color = new Color(1, 1, 1, 0.2f);
                 Handles.DrawLine(new Vector3(rect.x, y), new Vector3(rect.x + rect.width, y));
-                
+
                 // 绘制网格值
                 float value = minValue + (maxValue - minValue) * ((float)i / gridLines);
                 GUI.color = Color.white;
                 GUI.Label(new Rect(rect.x, y - 8, 50, 16), $"{value:F2}");
             }
-            
+
             // 绘制数据线
             if (timeSeriesData.Count > 1)
             {
-                Color lineColor = _operationColors.ContainsKey(operationName) ? _operationColors[operationName] : Color.cyan;
+                Color lineColor = _operationColors.ContainsKey(operationName)
+                    ? _operationColors[operationName]
+                    : Color.cyan;
                 Handles.color = lineColor;
-                
+
                 for (int i = 0; i < timeSeriesData.Count - 1; i++)
                 {
                     float x1 = rect.x + rect.width * ((float)i / (timeSeriesData.Count - 1));
                     float y1 = rect.y + rect.height * (1.0f - (timeSeriesData[i] - minValue) / (maxValue - minValue));
-                    
+
                     float x2 = rect.x + rect.width * ((float)(i + 1) / (timeSeriesData.Count - 1));
-                    float y2 = rect.y + rect.height * (1.0f - (timeSeriesData[i + 1] - minValue) / (maxValue - minValue));
-                    
+                    float y2 = rect.y +
+                               rect.height * (1.0f - (timeSeriesData[i + 1] - minValue) / (maxValue - minValue));
+
                     Handles.DrawLine(new Vector3(x1, y1), new Vector3(x2, y2));
                 }
             }
-            
+
             // 绘制统计信息
             GUI.color = Color.white;
-            string statsText = $"最小: {minValue:F2} ms  最大: {maxValue:F2} ms  平均: {timeSeriesData.Average():F2} ms  样本数: {timeSeriesData.Count}";
+            string statsText =
+                $"最小: {minValue:F2} ms  最大: {maxValue:F2} ms  平均: {timeSeriesData.Average():F2} ms  样本数: {timeSeriesData.Count}";
             GUI.Label(new Rect(rect.x, rect.y + rect.height - 16, rect.width, 16), statsText);
-            
+
             // 重置颜色
             GUI.color = Color.white;
             Handles.color = Color.white;
         }
-        
+
         private Texture2D MakeTex(int width, int height, Color col)
         {
             Color[] pix = new Color[width * height];
@@ -886,6 +890,7 @@ namespace CnoomFramework.Editor
             {
                 pix[i] = col;
             }
+
             Texture2D result = new Texture2D(width, height);
             result.SetPixels(pix);
             result.Apply();

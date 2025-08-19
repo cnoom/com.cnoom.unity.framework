@@ -14,7 +14,7 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class MockManagerWindow : EditorWindow
     {
-        private const string MenuPath = FrameworkEditorConfig.MenuPath + "Mock 管理";
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "/" + "Mock 管理";
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;
         private GUIStyle _headerStyle;
@@ -173,6 +173,7 @@ namespace CnoomFramework.Editor
                     {
                         modulesByType[typeName] = new List<IModule>();
                     }
+
                     modulesByType[typeName].Add(module);
                 }
 
@@ -233,27 +234,27 @@ namespace CnoomFramework.Editor
             // 模块名称和状态
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label($"{module.Name} ({module.State})", EditorStyles.boldLabel);
-            
+
             // 显示是否被Mock
             bool isMocked = interfaces.Any(i => mockedModules.Contains(i));
             if (isMocked)
             {
                 GUILayout.Label("已Mock", EditorStyles.boldLabel, GUILayout.Width(60));
             }
-            
+
             EditorGUILayout.EndHorizontal();
 
             // 模块接口列表
             foreach (var interfaceType in interfaces)
             {
                 bool isInterfaceMocked = mockedModules.Contains(interfaceType);
-                
+
                 EditorGUILayout.BeginHorizontal();
-                
+
                 // 接口名称和折叠控制
-                _moduleFoldouts[interfaceType] = EditorGUILayout.Foldout(_moduleFoldouts[interfaceType], 
+                _moduleFoldouts[interfaceType] = EditorGUILayout.Foldout(_moduleFoldouts[interfaceType],
                     $"接口: {interfaceType.Name}", true);
-                
+
                 // Mock/取消Mock按钮
                 if (isInterfaceMocked)
                 {
@@ -262,22 +263,22 @@ namespace CnoomFramework.Editor
                         mockManager.RemoveMock(interfaceType);
                     }
                 }
-                
+
                 EditorGUILayout.EndHorizontal();
 
                 // 如果展开，显示详情
                 if (_moduleFoldouts[interfaceType])
                 {
                     EditorGUI.indentLevel++;
-                    
+
                     // 显示接口详情
                     EditorGUILayout.LabelField("实现类型:", module.GetType().FullName);
-                    
+
                     // 如果模块实现了IStatefulModule，显示状态信息
                     if (module is IStatefulModule statefulModule)
                     {
                         EditorGUILayout.LabelField("支持状态转移: 是");
-                        
+
                         // 显示状态信息
                         var state = statefulModule.ExportState();
                         if (state != null && state.Count > 0)
@@ -288,6 +289,7 @@ namespace CnoomFramework.Editor
                             {
                                 EditorGUILayout.LabelField($"{item.Key}: {item.Value}");
                             }
+
                             EditorGUI.indentLevel--;
                         }
                     }
@@ -295,7 +297,7 @@ namespace CnoomFramework.Editor
                     {
                         EditorGUILayout.LabelField("支持状态转移: 否");
                     }
-                    
+
                     EditorGUI.indentLevel--;
                 }
             }

@@ -28,7 +28,7 @@ namespace CnoomFramework.Editor
             Performance
         }
 
-        private const string MenuPath = FrameworkEditorConfig.MenuPath + "框架调试器";
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "/" + "框架调试器";
 
         private TabType _selectedTab = TabType.Overview;
         private Vector2 _scrollPosition;

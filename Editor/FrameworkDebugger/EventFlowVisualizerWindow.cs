@@ -14,7 +14,7 @@ namespace CnoomFramework.Editor
     /// </summary>
     public class EventFlowVisualizerWindow : EditorWindow
     {
-        private const string MenuPath = FrameworkEditorConfig.MenuPath + "事件流程可视化器";
+        private const string MenuPath = FrameworkEditorConfig.MenuPath + "/" + "事件流程可视化器";
 
         private Vector2 _scrollPosition;
         private bool _isFrameworkInitialized = false;
@@ -41,13 +41,13 @@ namespace CnoomFramework.Editor
         private bool _showEventFlowGraph = false;
         private string _selectedEventType = "";
         private int _maxOccurrencesToShow = 10;
-        
+
         // 事件流数据
         private List<EventFlowData> _eventFlowData = new List<EventFlowData>();
         private Dictionary<string, bool> _eventFoldouts = new Dictionary<string, bool>();
         private Dictionary<string, Color> _eventTypeColors = new Dictionary<string, Color>();
         private int _selectedEventIndex = -1;
-        
+
         // 事件流数据类
         [Serializable]
         private class EventFlowData
@@ -61,7 +61,7 @@ namespace CnoomFramework.Editor
             public float AverageTimeBetweenOccurrences;
             public List<float> RecentDurations = new List<float>();
         }
-        
+
         [Serializable]
         private class EventSubscriberData
         {
@@ -69,7 +69,7 @@ namespace CnoomFramework.Editor
             public string MethodName;
             public bool IsActive;
         }
-        
+
         [Serializable]
         private class EventOccurrenceData
         {
@@ -114,7 +114,7 @@ namespace CnoomFramework.Editor
                         SubscribeToFrameworkEvents();
                         RefreshEventFlowData();
                     }
-                    
+
                     // 自动刷新
                     if (_autoRefresh && Time.realtimeSinceStartup - _lastRefreshTime > _refreshInterval)
                     {
@@ -138,26 +138,26 @@ namespace CnoomFramework.Editor
         {
             // 这里可以订阅一些框架事件来更新事件流数据
             var eventBus = FrameworkManager.Instance.EventBus;
-            
+
             // 使用反射获取EventBus的私有字段和方法，以便我们可以获取订阅信息
             var eventBusType = eventBus.GetType();
-            
+
             // 订阅框架事件
             eventBus.Subscribe<ModuleRegisteredEvent>(OnModuleRegistered);
             eventBus.Subscribe<ModuleUnregisteredEvent>(OnModuleUnregistered);
             eventBus.Subscribe<ModuleStateChangedEvent>(OnModuleStateChanged);
         }
-        
+
         private void OnModuleRegistered(ModuleRegisteredEvent evt)
         {
             RefreshEventFlowData();
         }
-        
+
         private void OnModuleUnregistered(ModuleUnregisteredEvent evt)
         {
             RefreshEventFlowData();
         }
-        
+
         private void OnModuleStateChanged(ModuleStateChangedEvent evt)
         {
             RefreshEventFlowData();
@@ -166,16 +166,16 @@ namespace CnoomFramework.Editor
         private void RefreshEventFlowData()
         {
             if (!_isFrameworkInitialized) return;
-            
+
             // 使用EventFlowRecorder获取事件流数据
             var recorder = EventFlowRecorder.Instance;
-            
+
             // 清除旧数据，但保留事件折叠状态
             _eventFlowData.Clear();
-            
+
             // 获取所有事件类型信息
             var eventTypeInfos = recorder.GetAllEventTypeInfos();
-            
+
             // 为每种事件类型分配一个颜色
             foreach (var eventTypeInfo in eventTypeInfos)
             {
@@ -185,20 +185,20 @@ namespace CnoomFramework.Editor
                     _eventTypeColors[eventTypeName] = GetRandomColor();
                 }
             }
-            
+
             // 遍历所有事件类型和订阅者
             foreach (var eventTypeInfo in eventTypeInfos)
             {
                 var eventType = eventTypeInfo.EventType;
                 var eventTypeName = eventTypeInfo.EventTypeName;
-                
+
                 var eventData = new EventFlowData
                 {
                     EventType = eventTypeName,
                     TotalOccurrences = eventTypeInfo.TotalOccurrences,
                     LastOccurrence = eventTypeInfo.LastOccurrenceTime
                 };
-                
+
                 // 获取订阅者信息
                 var subscribers = recorder.GetEventSubscribers(eventType);
                 foreach (var subscriber in subscribers)
@@ -210,7 +210,7 @@ namespace CnoomFramework.Editor
                         IsActive = subscriber.IsActive
                     });
                 }
-                
+
                 // 获取最近事件发生记录
                 var occurrences = recorder.GetEventOccurrences(eventType, 5);
                 foreach (var occurrence in occurrences)
@@ -220,19 +220,19 @@ namespace CnoomFramework.Editor
                         Timestamp = occurrence.Timestamp,
                         EventData = occurrence.EventData
                     };
-                    
+
                     // 添加处理者信息
                     foreach (var handler in occurrence.Handlers)
                     {
                         occurrenceData.ProcessedBy.Add($"{handler.HandlerName}.{handler.MethodName}");
                     }
-                    
+
                     eventData.RecentOccurrences.Add(occurrenceData);
                 }
-                
+
                 _eventFlowData.Add(eventData);
             }
-            
+
             // 按事件类型名称排序
             _eventFlowData = _eventFlowData.OrderBy(e => e.EventType).ToList();
         }
@@ -249,13 +249,13 @@ namespace CnoomFramework.Editor
         private void OnGUI()
         {
             InitializeStyles();
-            
+
             DrawToolbar();
-            
+
             EditorGUILayout.Space();
-            
+
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-            
+
             if (!_isFrameworkInitialized)
             {
                 EditorGUILayout.HelpBox("框架未初始化，请在运行时查看事件流信息。", MessageType.Info);
@@ -264,7 +264,7 @@ namespace CnoomFramework.Editor
             {
                 DrawEventFlowVisualization();
             }
-            
+
             EditorGUILayout.EndScrollView();
         }
 
@@ -279,7 +279,7 @@ namespace CnoomFramework.Editor
                     margin = new RectOffset(10, 10, 10, 10)
                 };
             }
-            
+
             if (_subHeaderStyle == null)
             {
                 _subHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
@@ -289,7 +289,7 @@ namespace CnoomFramework.Editor
                     margin = new RectOffset(5, 5, 5, 5)
                 };
             }
-            
+
             if (_boldLabelStyle == null)
             {
                 _boldLabelStyle = new GUIStyle(EditorStyles.boldLabel)
@@ -302,10 +302,10 @@ namespace CnoomFramework.Editor
             {
                 _eventTitle = new GUIStyle(_boldLabelStyle)
                 {
-                    clipping = TextClipping.Overflow 
+                    clipping = TextClipping.Overflow
                 };
             }
-            
+
             if (_boxStyle == null)
             {
                 _boxStyle = new GUIStyle(EditorStyles.helpBox)
@@ -314,7 +314,7 @@ namespace CnoomFramework.Editor
                     padding = new RectOffset(10, 10, 10, 10)
                 };
             }
-            
+
             if (_eventNodeStyle == null)
             {
                 _eventNodeStyle = new GUIStyle(EditorStyles.helpBox)
@@ -324,7 +324,7 @@ namespace CnoomFramework.Editor
                     normal = { background = EditorGUIUtility.Load("CN EntryBackEven") as Texture2D }
                 };
             }
-            
+
             if (_subscriberNodeStyle == null)
             {
                 _subscriberNodeStyle = new GUIStyle(EditorStyles.helpBox)
@@ -334,7 +334,7 @@ namespace CnoomFramework.Editor
                     normal = { background = EditorGUIUtility.Load("CN EntryBackOdd") as Texture2D }
                 };
             }
-            
+
             if (_buttonStyle == null)
             {
                 _buttonStyle = new GUIStyle(EditorStyles.miniButton)
@@ -342,7 +342,7 @@ namespace CnoomFramework.Editor
                     margin = new RectOffset(2, 2, 2, 2)
                 };
             }
-            
+
             if (_searchFieldStyle == null)
             {
                 _searchFieldStyle = new GUIStyle(EditorStyles.toolbarSearchField)
@@ -351,7 +351,7 @@ namespace CnoomFramework.Editor
                     fixedWidth = 200
                 };
             }
-            
+
             if (_searchCancelButtonStyle == null)
             {
                 _searchCancelButtonStyle = new GUIStyle(EditorStyles.toolbarButton)
@@ -365,20 +365,20 @@ namespace CnoomFramework.Editor
         private void DrawToolbar()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            
+
             if (GUILayout.Button("刷新", EditorStyles.toolbarButton))
             {
                 RefreshEventFlowData();
             }
-            
+
             _autoRefresh = GUILayout.Toggle(_autoRefresh, "自动刷新", EditorStyles.toolbarButton);
-            
+
             if (_autoRefresh)
             {
                 GUILayout.Label("刷新间隔:", GUILayout.Width(60));
                 _refreshInterval = EditorGUILayout.Slider(_refreshInterval, 0.1f, 5.0f, GUILayout.Width(100));
             }
-            
+
             _showInactiveEvents = GUILayout.Toggle(_showInactiveEvents, "显示非活跃事件", EditorStyles.toolbarButton);
             _showEventDetails = GUILayout.Toggle(_showEventDetails, "显示事件详情", EditorStyles.toolbarButton);
             _showSubscriberDetails = GUILayout.Toggle(_showSubscriberDetails, "显示订阅者详情", EditorStyles.toolbarButton);
@@ -386,26 +386,26 @@ namespace CnoomFramework.Editor
             _showEventTimeline = GUILayout.Toggle(_showEventTimeline, "显示时间线", EditorStyles.toolbarButton);
             _groupByModule = GUILayout.Toggle(_groupByModule, "按模块分组", EditorStyles.toolbarButton);
             _showEventFlowGraph = GUILayout.Toggle(_showEventFlowGraph, "显示流程图", EditorStyles.toolbarButton);
-            
+
             GUILayout.FlexibleSpace();
-            
+
             _searchText = EditorGUILayout.TextField(_searchText, _searchFieldStyle);
-            
+
             if (GUILayout.Button("×", _searchCancelButtonStyle) && !string.IsNullOrEmpty(_searchText))
             {
                 _searchText = "";
                 GUI.FocusControl(null);
             }
-            
+
             EditorGUILayout.EndHorizontal();
         }
 
         private void DrawEventFlowVisualization()
         {
             EditorGUILayout.BeginVertical();
-            
+
             GUILayout.Label("事件流可视化", _headerStyle);
-            
+
             if (_eventFlowData.Count == 0)
             {
                 EditorGUILayout.HelpBox("暂无事件数据。", MessageType.Info);
@@ -424,15 +424,16 @@ namespace CnoomFramework.Editor
             {
                 DrawEventFlowGraph();
             }
-            
+
             // 过滤事件
             var filteredEvents = _eventFlowData;
             if (!string.IsNullOrEmpty(_searchText))
             {
                 filteredEvents = _eventFlowData
                     .Where(e => e.EventType.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
-                                e.Subscribers.Any(s => s.SubscriberName.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
-                                                      s.MethodName.Contains(_searchText, StringComparison.OrdinalIgnoreCase)))
+                                e.Subscribers.Any(s =>
+                                    s.SubscriberName.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+                                    s.MethodName.Contains(_searchText, StringComparison.OrdinalIgnoreCase)))
                     .ToList();
             }
 
@@ -449,7 +450,7 @@ namespace CnoomFramework.Editor
                     DrawEventNode(eventData);
                 }
             }
-            
+
             EditorGUILayout.EndVertical();
         }
 
@@ -460,33 +461,33 @@ namespace CnoomFramework.Editor
             {
                 _eventFoldouts[eventData.EventType] = false;
             }
-            
+
             // 获取事件颜色
-            Color eventColor = _eventTypeColors.ContainsKey(eventData.EventType) 
-                ? _eventTypeColors[eventData.EventType] 
+            Color eventColor = _eventTypeColors.ContainsKey(eventData.EventType)
+                ? _eventTypeColors[eventData.EventType]
                 : Color.white;
-            
+
             // 绘制事件节点
             EditorGUILayout.BeginVertical(_eventNodeStyle);
-            
+
             EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
-            
+
             // 绘制颜色标记
             GUI.color = eventColor;
             GUILayout.Box("", GUILayout.Width(16), GUILayout.Height(16));
             GUI.color = Color.white;
-            
+
             // 事件类型和折叠控制
             GUIContent content = new GUIContent($"{eventData.EventType} ({eventData.Subscribers.Count} 订阅者)");
-            _eventFoldouts[eventData.EventType] = EditorGUILayout.Foldout(_eventFoldouts[eventData.EventType], 
+            _eventFoldouts[eventData.EventType] = EditorGUILayout.Foldout(_eventFoldouts[eventData.EventType],
                 content, true, _eventTitle);
-            
+
             // 事件统计信息
             if (eventData.TotalOccurrences > 0)
             {
                 GUILayout.Label($"触发次数: {eventData.TotalOccurrences}", GUILayout.Width(100));
                 GUILayout.Label($"最近: {eventData.LastOccurrence.ToString("HH:mm:ss")}", GUILayout.Width(100));
-                
+
                 if (_showEventStatistics && eventData.TotalOccurrences > 1)
                 {
                     var timeSpan = eventData.LastOccurrence - eventData.FirstOccurrence;
@@ -494,9 +495,9 @@ namespace CnoomFramework.Editor
                     GUILayout.Label($"平均间隔: {avgInterval:F1}s", GUILayout.Width(120));
                 }
             }
-            
+
             EditorGUILayout.EndHorizontal();
-            
+
             // 如果展开，显示订阅者
             if (_eventFoldouts[eventData.EventType])
             {
@@ -505,19 +506,19 @@ namespace CnoomFramework.Editor
                 {
                     EditorGUILayout.BeginVertical(_boxStyle);
                     GUILayout.Label("事件详情", _subHeaderStyle);
-                    
+
                     EditorGUILayout.LabelField("完整类型名称:", eventData.EventType);
-                    
+
                     // 这里可以显示更多事件类型的详细信息，如事件参数类型等
-                    
+
                     EditorGUILayout.EndVertical();
-                    
+
                     EditorGUILayout.Space();
                 }
-                
+
                 // 订阅者列表
                 GUILayout.Label("订阅者", _subHeaderStyle);
-                
+
                 if (eventData.Subscribers.Count == 0)
                 {
                     EditorGUILayout.HelpBox("此事件没有订阅者。", MessageType.Info);
@@ -529,24 +530,24 @@ namespace CnoomFramework.Editor
                         DrawSubscriberNode(subscriber);
                     }
                 }
-                
+
                 // 最近事件发生记录
                 if (eventData.RecentOccurrences.Count > 0)
                 {
                     EditorGUILayout.Space();
                     GUILayout.Label("最近事件记录", _subHeaderStyle);
-                    
+
                     foreach (var occurrence in eventData.RecentOccurrences)
                     {
                         EditorGUILayout.BeginVertical(_boxStyle);
-                        
+
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField(occurrence.Timestamp.ToString("HH:mm:ss.fff"), GUILayout.Width(100));
-                        
+
                         if (occurrence.EventData != null)
                         {
                             string eventDataString = "无数据";
-                            
+
                             // 尝试获取更友好的事件数据显示
                             if (occurrence.EventData is ModuleRegisteredEvent moduleRegEvent)
                             {
@@ -558,7 +559,8 @@ namespace CnoomFramework.Editor
                             }
                             else if (occurrence.EventData is ModuleStateChangedEvent moduleStateEvent)
                             {
-                                eventDataString = $"模块状态变更: {moduleStateEvent.ModuleName}, 状态: {moduleStateEvent.NewState}";
+                                eventDataString =
+                                    $"模块状态变更: {moduleStateEvent.ModuleName}, 状态: {moduleStateEvent.NewState}";
                             }
                             else if (occurrence.EventData is ConfigChangedEvent configEvent)
                             {
@@ -568,16 +570,16 @@ namespace CnoomFramework.Editor
                             {
                                 eventDataString = occurrence.EventData.ToString();
                             }
-                            
+
                             EditorGUILayout.LabelField(eventDataString);
                         }
                         else
                         {
                             EditorGUILayout.LabelField("无数据");
                         }
-                        
+
                         EditorGUILayout.EndHorizontal();
-                        
+
                         if (occurrence.ProcessedBy.Count > 0)
                         {
                             EditorGUILayout.LabelField("处理者:", _boldLabelStyle);
@@ -586,14 +588,14 @@ namespace CnoomFramework.Editor
                                 EditorGUILayout.LabelField("- " + processor);
                             }
                         }
-                        
+
                         EditorGUILayout.EndVertical();
                     }
                 }
             }
-            
+
             EditorGUILayout.EndVertical();
-            
+
             EditorGUILayout.Space();
         }
 
@@ -652,7 +654,7 @@ namespace CnoomFramework.Editor
             // 事件发布者
             EditorGUILayout.BeginVertical(GUILayout.Width(150));
             GUILayout.Label("发布者", _boldLabelStyle);
-            
+
             var publishers = _eventFlowData
                 .SelectMany(e => e.RecentOccurrences)
                 .Select(o => GetEventPublisher(o.EventData))
@@ -664,6 +666,7 @@ namespace CnoomFramework.Editor
             {
                 EditorGUILayout.LabelField(publisher);
             }
+
             EditorGUILayout.EndVertical();
 
             // 箭头
@@ -674,7 +677,7 @@ namespace CnoomFramework.Editor
             // 事件类型
             EditorGUILayout.BeginVertical(GUILayout.Width(150));
             GUILayout.Label("事件类型", _boldLabelStyle);
-            
+
             var eventTypes = _eventFlowData
                 .OrderByDescending(e => e.TotalOccurrences)
                 .Take(5)
@@ -684,6 +687,7 @@ namespace CnoomFramework.Editor
             {
                 EditorGUILayout.LabelField(eventType);
             }
+
             EditorGUILayout.EndVertical();
 
             // 箭头
@@ -694,7 +698,7 @@ namespace CnoomFramework.Editor
             // 订阅者
             EditorGUILayout.BeginVertical(GUILayout.Width(150));
             GUILayout.Label("订阅者", _boldLabelStyle);
-            
+
             var subscribers = _eventFlowData
                 .SelectMany(e => e.Subscribers)
                 .Where(s => s.IsActive)
@@ -706,6 +710,7 @@ namespace CnoomFramework.Editor
             {
                 EditorGUILayout.LabelField(subscriber);
             }
+
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.EndHorizontal();
@@ -745,9 +750,9 @@ namespace CnoomFramework.Editor
         private void DrawSubscriberNode(EventSubscriberData subscriber)
         {
             EditorGUILayout.BeginVertical(_subscriberNodeStyle);
-            
+
             EditorGUILayout.BeginHorizontal();
-            
+
             // 活跃状态指示器
             if (subscriber.IsActive)
             {
@@ -759,25 +764,26 @@ namespace CnoomFramework.Editor
                 GUI.color = Color.gray;
                 GUILayout.Box("●", GUILayout.Width(20));
             }
+
             GUI.color = Color.white;
-            
+
             // 订阅者名称
             EditorGUILayout.LabelField(subscriber.SubscriberName, _boldLabelStyle);
-            
+
             // 方法名称
             if (_showSubscriberDetails)
             {
                 EditorGUILayout.LabelField("方法: " + subscriber.MethodName);
             }
-            
+
             EditorGUILayout.EndHorizontal();
-            
+
             // 订阅者详情
             if (_showSubscriberDetails)
             {
                 // 这里可以显示更多订阅者的详细信息
             }
-            
+
             EditorGUILayout.EndVertical();
         }
 
@@ -786,19 +792,19 @@ namespace CnoomFramework.Editor
             if (eventData == null) return "未知";
 
             // 根据事件类型推断发布者
-            if (eventData is ModuleRegisteredEvent || 
-                eventData is ModuleUnregisteredEvent || 
+            if (eventData is ModuleRegisteredEvent ||
+                eventData is ModuleUnregisteredEvent ||
                 eventData is ModuleStateChangedEvent)
             {
                 return "FrameworkManager";
             }
-            else if (eventData is ConfigChangedEvent || 
-                     eventData is ConfigSavedEvent || 
+            else if (eventData is ConfigChangedEvent ||
+                     eventData is ConfigSavedEvent ||
                      eventData is ConfigLoadedEvent)
             {
                 return "ConfigManager";
             }
-            else if (eventData is PerformanceDataUpdatedEvent || 
+            else if (eventData is PerformanceDataUpdatedEvent ||
                      eventData is PerformanceMonitorStatusChangedEvent)
             {
                 return "PerformanceMonitor";
