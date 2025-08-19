@@ -7,6 +7,7 @@ namespace CnoomFramework.Core.Performance
     /// <summary>
     ///     性能监控模块，负责管理框架性能监控功能
     /// </summary>
+    [AutoRegisterModule]
     public class PerformanceMonitorModule : BaseModule
     {
         private bool _autoPublishUpdates = true;

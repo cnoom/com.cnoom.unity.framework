@@ -21,7 +21,6 @@ namespace CnoomFramework.Core
     /// </summary>
     public class FrameworkManager : PersistentMonoSingleton<FrameworkManager>
     {
-
         [SerializeField] private bool _autoInitialize = true;
         [SerializeField] private bool _enableDebugLog = true;
         [SerializeField] private int _maxCachedEvents = 1000;
@@ -35,7 +34,7 @@ namespace CnoomFramework.Core
         private int _eventBusMaxAsyncPerFrame = 64;
         private int _eventBusMaxCached = 1000;
         private bool _isShuttingDown;
-        
+
         /// <summary>
         ///     事件总线
         /// </summary>
@@ -102,7 +101,7 @@ namespace CnoomFramework.Core
             else
                 OnApplicationResumed();
         }
-        
+
         /// <summary>
         ///     初始化框架
         /// </summary>
@@ -134,9 +133,6 @@ namespace CnoomFramework.Core
                 // 从配置设置事件总线参数
                 ApplyEventBusConfig();
 
-                // 注册核心模块
-                RegisterCoreModules();
-
                 // 自动发现并注册模块
                 AutoDiscoverModules();
 
@@ -161,20 +157,6 @@ namespace CnoomFramework.Core
                 Debug.LogError($"CnoomFramework 初始化失败: {ex.Message}");
                 throw;
             }
-        }
-
-        /// <summary>
-        ///     注册核心模块
-        /// </summary>
-        private void RegisterCoreModules()
-        {
-            // 注册性能监控模块
-            RegisterModule(new PerformanceMonitorModule());
-
-            // 注册契约验证模块
-            RegisterModule(new ContractValidationModule());
-
-            // 这里可以注册其他核心模块
         }
 
         /// <summary>
@@ -489,8 +471,11 @@ namespace CnoomFramework.Core
                     foreach (var moduleType in moduleTypes)
                         try
                         {
-                            var module = Activator.CreateInstance(moduleType) as IModule;
-                            if (module != null) RegisterModule(module);
+                            if (moduleType.GetCustomAttributes(typeof(AutoRegisterModuleAttribute), false).Any())
+                            {
+                                var module = Activator.CreateInstance(moduleType) as IModule;
+                                if (module != null) RegisterModule(module);
+                            }
                         }
                         catch (Exception ex)
                         {

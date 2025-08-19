@@ -1,4 +1,5 @@
 using System;
+using CnoomFramework.Core.Attributes;
 using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Exceptions;
 using CnoomFramework.Core.Mock;
@@ -9,6 +10,7 @@ namespace CnoomFramework.Core.Contracts
     /// <summary>
     ///     契约验证模块，负责管理和执行契约验证
     /// </summary>
+    [AutoRegisterModule]
     public class ContractValidationModule : BaseModule
     {
         /// <summary>
