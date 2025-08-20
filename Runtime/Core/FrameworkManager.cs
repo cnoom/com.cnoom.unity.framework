@@ -146,6 +146,9 @@ namespace CnoomFramework.Core
                 // 启动所有模块
                 StartModules();
 
+                // 清除排序集合
+                _sortedModules.Clear();
+
                 IsInitialized = true;
 
                 // 发布框架初始化完成事件
@@ -226,7 +229,7 @@ namespace CnoomFramework.Core
         }
 
         /// <summary>
-        ///     注册模块
+        ///     注册模块并执行初始化和开始方法
         /// </summary>
         public void RegisterModule<T>(T module) where T : class, IModule
         {
@@ -234,10 +237,13 @@ namespace CnoomFramework.Core
 
             var moduleType = typeof(T);
 
-            RegisterModule(module, moduleType);
+            RegisterModuleWithoutProcess(module, moduleType);
+            module.Init();
+            module.Start();
+            
         }
 
-        private void RegisterModule(IModule module, Type moduleType)
+        private void RegisterModuleWithoutProcess(IModule module, Type moduleType)
         {
             if (_moduleDict.ContainsKey(moduleType))
             {
@@ -474,7 +480,7 @@ namespace CnoomFramework.Core
                             if (attr == null) continue;
                             if (Activator.CreateInstance(moduleType) is IModule module)
                             {
-                                RegisterModule(module, attr.InterfaceType ?? module.GetType());
+                                RegisterModuleWithoutProcess(module, attr.InterfaceType ?? module.GetType());
                             }
                         }
                         catch (Exception ex)
@@ -497,7 +503,7 @@ namespace CnoomFramework.Core
             var visited = new HashSet<Type>();
             var visiting = new HashSet<Type>();
 
-            foreach (var module in _moduleDict.Values)
+            foreach (var module in _modules)
                 if (!visited.Contains(module.GetType()))
                     VisitModule(module, visited, visiting, sortedModules);
 
