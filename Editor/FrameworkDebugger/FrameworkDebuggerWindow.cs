@@ -272,7 +272,7 @@ namespace CnoomFramework.Editor
         private void RefreshModulesList()
         {
             if (!_isFrameworkInitialized) return;
-
+            
             _modules.Clear();
             _modules.AddRange(FrameworkManager.Instance.Modules);
 

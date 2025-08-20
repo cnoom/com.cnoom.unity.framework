@@ -231,8 +231,13 @@ namespace CnoomFramework.Core
         {
             if (module == null) throw new ArgumentNullException(nameof(module));
 
-            var moduleType = module.GetType();
+            var moduleType = typeof(T);
 
+            RegisterModule(module, moduleType);
+        }
+
+        private void RegisterModule(IModule module, Type moduleType)
+        {
             if (_modules.ContainsKey(moduleType))
             {
                 Debug.LogWarning($"模块 [{moduleType.Name}] 已经注册。");
@@ -246,15 +251,6 @@ namespace CnoomFramework.Core
             EventBus?.Publish(new ModuleRegisteredEvent(module.Name, moduleType));
 
             Debug.Log($"模块 [{module.Name}] 注册成功。");
-        }
-
-        /// <summary>
-        ///     注册模块（通过类型）
-        /// </summary>
-        public void RegisterModule<T>() where T : class, IModule, new()
-        {
-            var module = new T();
-            RegisterModule(module);
         }
 
         /// <summary>
@@ -471,10 +467,12 @@ namespace CnoomFramework.Core
                     foreach (var moduleType in moduleTypes)
                         try
                         {
-                            if (moduleType.GetCustomAttributes(typeof(AutoRegisterModuleAttribute), false).Any())
+                            AutoRegisterModuleAttribute attr =
+                                moduleType.GetCustomAttribute<AutoRegisterModuleAttribute>();
+                            if (attr == null) continue;
+                            if (Activator.CreateInstance(moduleType) is IModule module)
                             {
-                                var module = Activator.CreateInstance(moduleType) as IModule;
-                                if (module != null) RegisterModule(module);
+                                RegisterModule(module, attr.InterfaceType ?? module.GetType());
                             }
                         }
                         catch (Exception ex)

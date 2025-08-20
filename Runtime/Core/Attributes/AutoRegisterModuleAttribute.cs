@@ -10,6 +10,6 @@ namespace CnoomFramework.Core.Attributes
     [AttributeUsage(AttributeTargets.Class)]
     public class AutoRegisterModuleAttribute : Attribute
     {
-        
+        public Type InterfaceType;
     }
 }
