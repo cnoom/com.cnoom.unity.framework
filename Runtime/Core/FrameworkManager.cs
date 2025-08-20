@@ -25,9 +25,10 @@ namespace CnoomFramework.Core
         [SerializeField] private bool _enableDebugLog = true;
         [SerializeField] private int _maxCachedEvents = 1000;
 
-        private readonly Dictionary<Type, IModule> _modules = new();
-        private readonly Dictionary<string, IModule> _modulesByName = new();
+        private readonly Dictionary<Type, IModule> _moduleDict = new();
+        private readonly Dictionary<string, IModule> _moduleDictByName = new();
         private readonly List<IModule> _sortedModules = new();
+        private readonly List<IModule> _modules = new();
         private ConfigManager _configManager;
 
         private bool _eventBusEnableInheritance = true;
@@ -68,7 +69,7 @@ namespace CnoomFramework.Core
         /// <summary>
         ///     获取所有模块
         /// </summary>
-        public IReadOnlyList<IModule> Modules => _sortedModules.AsReadOnly();
+        public IReadOnlyList<IModule> Modules => _modules.AsReadOnly();
 
         protected override void OnInitialized()
         {
@@ -148,9 +149,9 @@ namespace CnoomFramework.Core
                 IsInitialized = true;
 
                 // 发布框架初始化完成事件
-                EventBus.Publish(new FrameworkInitializedEvent(_modules.Count));
+                EventBus.Publish(new FrameworkInitializedEvent(_moduleDict.Count));
 
-                Debug.Log($"CnoomFramework 初始化成功，共 {_modules.Count} 个模块。");
+                Debug.Log($"CnoomFramework 初始化成功，共 {_moduleDict.Count} 个模块。");
             }
             catch (Exception ex)
             {
@@ -197,8 +198,8 @@ namespace CnoomFramework.Core
                 EventBus?.Clear();
 
                 // 清理模块集合
-                _modules.Clear();
-                _modulesByName.Clear();
+                _moduleDict.Clear();
+                _moduleDictByName.Clear();
                 _sortedModules.Clear();
 
                 IsInitialized = false;
@@ -238,15 +239,15 @@ namespace CnoomFramework.Core
 
         private void RegisterModule(IModule module, Type moduleType)
         {
-            if (_modules.ContainsKey(moduleType))
+            if (_moduleDict.ContainsKey(moduleType))
             {
                 Debug.LogWarning($"模块 [{moduleType.Name}] 已经注册。");
                 return;
             }
 
-            _modules[moduleType] = module;
-            _modulesByName[module.Name] = module;
-
+            _moduleDict[moduleType] = module;
+            _moduleDictByName[module.Name] = module;
+            _modules.Add(module);
             // 发布模块注册事件
             EventBus?.Publish(new ModuleRegisteredEvent(module.Name, moduleType));
 
@@ -260,15 +261,16 @@ namespace CnoomFramework.Core
         {
             var moduleType = typeof(T);
 
-            if (_modules.TryGetValue(moduleType, out var module))
+            if (_moduleDict.TryGetValue(moduleType, out var module))
             {
                 // 关闭模块
                 module.Shutdown();
 
                 // 从集合中移除
-                _modules.Remove(moduleType);
-                _modulesByName.Remove(module.Name);
+                _moduleDict.Remove(moduleType);
+                _moduleDictByName.Remove(module.Name);
                 _sortedModules.Remove(module);
+                _modules.Remove(module);
 
                 // 发布模块注销事件
                 EventBus?.Publish(new ModuleUnregisteredEvent(module.Name, moduleType));
@@ -283,7 +285,7 @@ namespace CnoomFramework.Core
         public T GetModule<T>() where T : class, IModule
         {
             var moduleType = typeof(T);
-            return _modules.TryGetValue(moduleType, out var module) ? module as T : null;
+            return _moduleDict.TryGetValue(moduleType, out var module) ? module as T : null;
         }
 
         /// <summary>
@@ -291,7 +293,7 @@ namespace CnoomFramework.Core
         /// </summary>
         public IModule GetModule(Type moduleType)
         {
-            return _modules.TryGetValue(moduleType, out var module) ? module : null;
+            return _moduleDict.TryGetValue(moduleType, out var module) ? module : null;
         }
 
         /// <summary>
@@ -299,7 +301,7 @@ namespace CnoomFramework.Core
         /// </summary>
         public IModule GetModule(string moduleName)
         {
-            return _modulesByName.TryGetValue(moduleName, out var module) ? module : null;
+            return _moduleDictByName.TryGetValue(moduleName, out var module) ? module : null;
         }
 
         /// <summary>
@@ -307,7 +309,7 @@ namespace CnoomFramework.Core
         /// </summary>
         public bool HasModule<T>() where T : class, IModule
         {
-            return _modules.ContainsKey(typeof(T));
+            return _moduleDict.ContainsKey(typeof(T));
         }
 
         /// <summary>
@@ -315,7 +317,7 @@ namespace CnoomFramework.Core
         /// </summary>
         public bool HasModule(string moduleName)
         {
-            return _modulesByName.ContainsKey(moduleName);
+            return _moduleDictByName.ContainsKey(moduleName);
         }
 
         /// <summary>
@@ -332,21 +334,21 @@ namespace CnoomFramework.Core
             if (newImplementation == null)
                 throw new ArgumentNullException(nameof(newImplementation));
 
-            if (!_modules.ContainsKey(interfaceType))
+            if (!_moduleDict.ContainsKey(interfaceType))
             {
                 Debug.LogWarning($"无法替换模块 [{interfaceType.Name}]，因为它未注册。");
                 return false;
             }
 
             // 获取旧模块
-            var oldModule = _modules[interfaceType];
+            var oldModule = _moduleDict[interfaceType];
 
             // 从集合中移除旧模块
-            _modulesByName.Remove(oldModule.Name);
+            _moduleDictByName.Remove(oldModule.Name);
 
             // 添加新模块
-            _modules[interfaceType] = newImplementation;
-            _modulesByName[newImplementation.Name] = newImplementation;
+            _moduleDict[interfaceType] = newImplementation;
+            _moduleDictByName[newImplementation.Name] = newImplementation;
 
             // 更新排序列表
             var index = _sortedModules.IndexOf(oldModule);
@@ -495,7 +497,7 @@ namespace CnoomFramework.Core
             var visited = new HashSet<Type>();
             var visiting = new HashSet<Type>();
 
-            foreach (var module in _modules.Values)
+            foreach (var module in _moduleDict.Values)
                 if (!visited.Contains(module.GetType()))
                     VisitModule(module, visited, visiting, sortedModules);
 
@@ -520,7 +522,7 @@ namespace CnoomFramework.Core
             // 获取依赖的模块
             var dependsOnAttributes = moduleType.GetCustomAttributes<DependsOnAttribute>();
             foreach (var dependsOn in dependsOnAttributes)
-                if (_modules.TryGetValue(dependsOn.ModuleType, out var dependencyModule))
+                if (_moduleDict.TryGetValue(dependsOn.ModuleType, out var dependencyModule))
                     VisitModule(dependencyModule, visited, visiting, sortedModules);
                 else
                     Debug.LogWarning(
