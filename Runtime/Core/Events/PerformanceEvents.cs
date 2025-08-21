@@ -41,6 +41,8 @@ namespace CnoomFramework.Core.Events
         ///     事件时间戳
         /// </summary>
         public DateTime Timestamp { get; }
+
+        public bool ShowInfo { get; set; } = false;
     }
 
     /// <summary>
@@ -67,6 +69,8 @@ namespace CnoomFramework.Core.Events
         ///     事件时间戳
         /// </summary>
         public DateTime Timestamp { get; }
+
+        public bool ShowInfo { get; set; }
     }
 
     /// <summary>
@@ -93,5 +97,7 @@ namespace CnoomFramework.Core.Events
         ///     事件时间戳
         /// </summary>
         public DateTime Timestamp { get; }
+
+        public bool ShowInfo { get; set; }
     }
 }

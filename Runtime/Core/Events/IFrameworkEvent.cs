@@ -7,6 +7,8 @@ namespace CnoomFramework.Core
     /// </summary>
     public interface IFrameworkEvent
     {
+        public static bool ShowInfo = true;
+
         /// <summary>
         ///     事件时间戳
         /// </summary>

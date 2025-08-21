@@ -104,7 +104,7 @@ namespace CnoomFramework.Core
         /// <summary>
         ///     订阅事件
         /// </summary>
-        public void Subscribe<T>(Action<T> handler,int priority) where T : notnull
+        public void Subscribe<T>(Action<T> handler, int priority) where T : notnull
         {
             if (handler == null) return;
 
@@ -383,7 +383,15 @@ namespace CnoomFramework.Core
             // 这里可以实现详细的事件日志记录
             // 为了性能考虑，可以通过配置开关控制
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log($"[EventBus] {action}: {eventType.Name} at {DateTime.Now:HH:mm:ss.fff}");
+            if (eventData is IFrameworkEvent && IFrameworkEvent.ShowInfo)
+            {
+                Debug.Log($"[EventBus] {action}: {eventType.Name} at {DateTime.Now:HH:mm:ss.fff}");
+            }
+
+            if (eventData is IShowInfoEvent && IShowInfoEvent.IsShow)
+            {
+                Debug.Log($"[EventBus] {action}: {eventType.Name} at {DateTime.Now:HH:mm:ss.fff}");
+            }
 #endif
         }
 
