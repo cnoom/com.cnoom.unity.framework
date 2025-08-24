@@ -27,16 +27,11 @@ namespace CnoomFrameWork.Singleton
             else
             {
                 // Destory duplicates
-                if (!_isQuitting)
+                if (Application.isPlaying)
                     Destroy(gameObject);
                 else
                     DestroyImmediate(gameObject);
             }
-        }
-
-        private void OnApplicationQuit()
-        {
-            _isQuitting = true;
         }
 
         #endregion
@@ -47,8 +42,6 @@ namespace CnoomFrameWork.Singleton
         ///     The instance.
         /// </summary>
         private static T instance;
-
-        private bool _isQuitting;
 
         /// <summary>
         ///     The initialization status of the singleton's instance.
