@@ -20,7 +20,7 @@ namespace CnoomFramework.Core
         private readonly ConcurrentDictionary<Type, List<EventHandler>> _eventHandlers = new();
         private readonly object _lockObject = new();
         private readonly Queue<PendingExecution> _pendingExecutions = new();
-        private readonly ConcurrentDictionary<Type, object> _requestHandlers = new();
+        private readonly ConcurrentDictionary<(Type, Type), object> _requestHandlers = new();
 
         private bool _isProcessingEvents;
         private int _maxAsyncHandlersPerFrame = 64;
@@ -156,6 +156,7 @@ namespace CnoomFramework.Core
             if (request == null) return default;
 
             var requestType = typeof(TRequest);
+            var responseType = typeof(TResponse);
             var operationName = $"EventBus.Request.{requestType.Name}";
 
             return PerformanceUtils.Measure(operationName, () =>
@@ -163,7 +164,7 @@ namespace CnoomFramework.Core
                 // 验证请求契约
                 ValidateRequestContract<TRequest, TResponse>(request);
 
-                if (_requestHandlers.TryGetValue(requestType, out var handler))
+                if (_requestHandlers.TryGetValue((requestType, responseType), out var handler))
                     try
                     {
                         if (handler is Func<TRequest, TResponse> typedHandler)
@@ -194,7 +195,8 @@ namespace CnoomFramework.Core
             if (handler == null) return;
 
             var requestType = typeof(TRequest);
-            _requestHandlers[requestType] = handler;
+            var responseType = typeof(TResponse);
+            _requestHandlers[(requestType, responseType)] = handler;
         }
 
         /// <summary>
@@ -203,7 +205,9 @@ namespace CnoomFramework.Core
         public void UnregisterRequestHandler<TRequest, TResponse>()
         {
             var requestType = typeof(TRequest);
-            _requestHandlers.TryRemove(requestType, out _);
+            var responseType = typeof(TResponse);
+
+            _requestHandlers.TryRemove((requestType, responseType), out _);
         }
 
         /// <summary>
