@@ -179,10 +179,10 @@ namespace CnoomFramework.Core
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"Error handling request {requestType.Name}: {ex.Message}");
+                        Debug.LogError($"Error handling request {requestType.Name} responseType {responseType}: {ex.Message}");
                     }
 
-                Debug.LogWarning($"No handler registered for request type {requestType.Name}");
+                Debug.LogWarning($"No handler registered for request type {requestType.Name} responseType {responseType}");
                 return default;
             });
         }
