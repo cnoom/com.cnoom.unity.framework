@@ -51,20 +51,15 @@ namespace CnoomFramework.Core.EventBuss.Core
         }
 
         // ----------------- Ⅰ️⃣ 广播 API -----------------
-        public void Publish<T>(T data) where T : notnull => _broadcast.Publish(data);
-
-        public void Subscribe<T>(Action<T> handler, int priority = 1) where T : notnull
-        {
-            _broadcast.Subscribe(handler, priority);
-        }
-
-        public void Subscribe<T>(Action<T> h, int p = 0, bool isAsync = false) where T : notnull =>
+        public void Broadcast<T>(T data) where T : notnull => _broadcast.Publish(data);
+        
+        public void SubscribeBroadcast<T>(Action<T> h, int p = 0, bool isAsync = false) where T : notnull =>
             _broadcast.Subscribe(h, p, isAsync);
 
-        public void Unsubscribe<T>(Action<T> h) where T : notnull => _broadcast.Unsubscribe(h);
+        public void UnsubscribeBroadcast<T>(Action<T> h) where T : notnull => _broadcast.Unsubscribe(h);
 
         // ----------------- Ⅱ️⃣ 单播 API -----------------
-        public void PublishUnicast<T>(T data) where T : notnull => _unicast.Publish(data);
+        public void Unicast<T>(T data) where T : notnull => _unicast.Publish(data);
 
         public void SubscribeUnicast<T>(Action<T> h, bool replace = true) where T : notnull =>
             _unicast.Subscribe(h, replace);

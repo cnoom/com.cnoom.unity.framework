@@ -155,7 +155,7 @@ namespace CnoomFramework.Core
                 IsInitialized = true;
 
                 // 发布框架初始化完成事件
-                EventBus.Publish(new FrameworkInitializedEvent(_moduleDict.Count));
+                EventBus.Broadcast(new FrameworkInitializedEvent(_moduleDict.Count));
 
                 Debug.Log($"CnoomFramework 初始化成功，共 {_moduleDict.Count} 个模块。");
             }
@@ -183,7 +183,7 @@ namespace CnoomFramework.Core
                 _configManager?.Save();
 
                 // 发布框架关闭事件
-                EventBus?.Publish(new FrameworkShutdownEvent());
+                EventBus?.Broadcast(new FrameworkShutdownEvent());
 
                 // 反向关闭所有模块
                 for (var i = _sortedModules.Count - 1; i >= 0; i--)
@@ -257,7 +257,7 @@ namespace CnoomFramework.Core
             _moduleDictByName[module.Name] = module;
             _modules.Add(module);
             // 发布模块注册事件
-            EventBus?.Publish(new ModuleRegisteredEvent(module.Name, moduleType));
+            EventBus?.Broadcast(new ModuleRegisteredEvent(module.Name, moduleType));
 
             Debug.Log($"模块 [{module.Name}] 注册成功。");
         }
@@ -281,7 +281,7 @@ namespace CnoomFramework.Core
                 _modules.Remove(module);
 
                 // 发布模块注销事件
-                EventBus?.Publish(new ModuleUnregisteredEvent(module.Name, moduleType));
+                EventBus?.Broadcast(new ModuleUnregisteredEvent(module.Name, moduleType));
 
                 Debug.Log($"模块 [{module.Name}] 已成功注销。");
             }

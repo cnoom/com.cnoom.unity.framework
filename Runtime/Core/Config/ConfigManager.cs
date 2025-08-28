@@ -99,7 +99,7 @@ namespace CnoomFramework.Core.Config
                     }
 
             // 发布配置变更事件
-            _eventBus?.Publish(new ConfigChangedEvent(key, newValue));
+            _eventBus?.Broadcast(new ConfigChangedEvent(key, newValue));
         }
 
         #region IConfigManager Implementation
@@ -185,7 +185,7 @@ namespace CnoomFramework.Core.Config
             foreach (var source in _configSources) source.Clear();
 
             // 触发清除事件
-            _eventBus?.Publish(new ConfigClearedEvent());
+            _eventBus?.Broadcast(new ConfigClearedEvent());
         }
 
         /// <inheritdoc />
@@ -203,7 +203,7 @@ namespace CnoomFramework.Core.Config
                 }
 
             // 触发保存事件
-            _eventBus?.Publish(new ConfigSavedEvent());
+            _eventBus?.Broadcast(new ConfigSavedEvent());
         }
 
         /// <inheritdoc />
@@ -221,7 +221,7 @@ namespace CnoomFramework.Core.Config
                 }
 
             // 触发加载事件
-            _eventBus?.Publish(new ConfigLoadedEvent());
+            _eventBus?.Broadcast(new ConfigLoadedEvent());
         }
 
         /// <inheritdoc />

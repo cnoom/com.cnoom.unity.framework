@@ -143,9 +143,9 @@ namespace CnoomFramework.Editor
             var eventBusType = eventBus.GetType();
 
             // 订阅框架事件
-            eventBus.Subscribe<ModuleRegisteredEvent>(OnModuleRegistered);
-            eventBus.Subscribe<ModuleUnregisteredEvent>(OnModuleUnregistered);
-            eventBus.Subscribe<ModuleStateChangedEvent>(OnModuleStateChanged);
+            eventBus.SubscribeBroadcast<ModuleRegisteredEvent>(OnModuleRegistered);
+            eventBus.SubscribeBroadcast<ModuleUnregisteredEvent>(OnModuleUnregistered);
+            eventBus.SubscribeBroadcast<ModuleStateChangedEvent>(OnModuleStateChanged);
         }
 
         private void OnModuleRegistered(ModuleRegisteredEvent evt)

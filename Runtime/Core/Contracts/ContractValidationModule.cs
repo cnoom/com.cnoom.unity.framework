@@ -53,7 +53,7 @@ namespace CnoomFramework.Core.Contracts
             FrameworkLogger.LogInfo("契约验证模块启动");
 
             // 发布模块就绪事件
-            EventBus.Publish(new ContractValidationModuleReadyEvent());
+            EventBus.Broadcast(new ContractValidationModuleReadyEvent());
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace CnoomFramework.Core.Contracts
             if (!result.IsValid)
             {
                 // 发布验证失败事件
-                EventBus.Publish(new ContractValidationFailedEvent(typeof(T), result.ErrorMessage));
+                EventBus.Broadcast(new ContractValidationFailedEvent(typeof(T), result.ErrorMessage));
 
                 // 如果配置为抛出异常，则抛出
                 if (ThrowOnValidationFailure)
@@ -150,7 +150,7 @@ namespace CnoomFramework.Core.Contracts
             if (!result.IsValid)
             {
                 // 发布验证失败事件
-                EventBus.Publish(new ContractValidationFailedEvent(typeof(TRequest), result.ErrorMessage));
+                EventBus.Broadcast(new ContractValidationFailedEvent(typeof(TRequest), result.ErrorMessage));
 
                 // 如果配置为抛出异常，则抛出
                 if (ThrowOnValidationFailure)
@@ -172,7 +172,7 @@ namespace CnoomFramework.Core.Contracts
             if (!result.IsValid)
             {
                 // 发布验证失败事件
-                EventBus.Publish(new ContractValidationFailedEvent(typeof(TResponse), result.ErrorMessage));
+                EventBus.Broadcast(new ContractValidationFailedEvent(typeof(TResponse), result.ErrorMessage));
 
                 // 如果配置为抛出异常，则抛出
                 if (ThrowOnValidationFailure)

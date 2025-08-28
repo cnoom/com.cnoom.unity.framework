@@ -72,20 +72,22 @@ namespace CnoomFramework.Extensions
                 var ps = method.GetParameters();
                 if (ps.Length != 1 || method.ReturnType != typeof(void))
                     throw new InvalidOperationException(
-                        $"[BroadcastHandler] 方法 {method.DeclaringType.FullName}.{method.Name} 必须是 void 方法且仅有一个参数。");
+                        $"[BroadcastHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须是 void 方法且仅有一个参数。");
 
                 var evType = ps[0].ParameterType;
                 var delegateType = typeof(Action<>).MakeGenericType(evType);
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // 调用 EventBus.Broadcast.Subscribe<T>(handler, priority, isAsync)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.Subscribe));
-                var subscribe = methodBus.MakeGenericMethod(evType);
-                subscribe.Invoke(bus, new object[] { handler, attr.Priority, attr.IsAsync });
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeBroadcast),
+                    new[] { typeof(Action<>).MakeGenericType(evType), typeof(int), typeof(bool) });
+                var subscribe = methodBus?.MakeGenericMethod(evType);
+                subscribe?.Invoke(bus, new object[] { handler, attr.Priority, attr.IsAsync });
 
                 // 记录用于后面注销
-                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.Unsubscribe))
-                    .MakeGenericMethod(evType);
+                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeBroadcast),
+                        new[] { typeof(Action<>).MakeGenericType(evType) })
+                    ?.MakeGenericMethod(evType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = handler });
             }
 
@@ -95,21 +97,23 @@ namespace CnoomFramework.Extensions
                 var ps = method.GetParameters();
                 if (ps.Length != 1 || method.ReturnType != typeof(void))
                     throw new InvalidOperationException(
-                        $"[UnicastHandler] 方法 {method.DeclaringType.FullName}.{method.Name} 必须是 void 方法且仅有一个参数。");
+                        $"[UnicastHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须是 void 方法且仅有一个参数。");
 
                 var evType = ps[0].ParameterType;
                 var delegateType = typeof(Action<>).MakeGenericType(evType);
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.SubscribeUnicast<T>(handler, replaceIfExists)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast));
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast),
+                    new[] { typeof(Action<>).MakeGenericType(evType), typeof(bool) });
 
-                var subscribe = methodBus.MakeGenericMethod(evType);
-                subscribe.Invoke(bus, new object[] { handler, attr.ReplaceIfExists });
+                var subscribe = methodBus?.MakeGenericMethod(evType);
+                subscribe?.Invoke(bus, new object[] { handler, attr.ReplaceIfExists });
 
                 // 注销：EventBus.UnsubscribeUnicast<T>()
-                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeUnicast))
-                    .MakeGenericMethod(evType);
+                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeUnicast),
+                        Type.EmptyTypes)
+                    ?.MakeGenericMethod(evType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = null });
             }
 
@@ -120,24 +124,26 @@ namespace CnoomFramework.Extensions
                 var ps = method.GetParameters();
                 if (ps.Length != 1)
                     throw new InvalidOperationException(
-                        $"[RequestHandler] 方法 {method.DeclaringType.FullName}.{method.Name} 必须恰好有一个参数。");
+                        $"[RequestHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须恰好有一个参数。");
 
                 var requestType = ps[0].ParameterType;
                 var responseType = method.ReturnType;
                 if (responseType == typeof(void))
                     throw new InvalidOperationException(
-                        $"[RequestHandler] 方法 {method.DeclaringType.FullName}.{method.Name} 必须有返回值（请求的响应）。");
+                        $"[RequestHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须有返回值（请求的响应）。");
 
                 var delegateType = typeof(Func<,>).MakeGenericType(requestType, responseType);
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.RegisterRequestHandler<TReq,TResp>(handler)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler));
-                var register = methodBus.MakeGenericMethod(requestType, responseType);
-                register.Invoke(bus, new object[] { handler });
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler),
+                    new[] { typeof(Func<,>).MakeGenericType(requestType, responseType) });
+                var register = methodBus?.MakeGenericMethod(requestType, responseType);
+                register?.Invoke(bus, new object[] { handler });
 
                 // 注销：EventBus.UnregisterRequestHandler<TReq,TResp>()
-                var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterRequestHandler))
+                var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterRequestHandler),
+                        Type.EmptyTypes)?
                     .MakeGenericMethod(requestType, responseType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unregister, Handler = null });
             }

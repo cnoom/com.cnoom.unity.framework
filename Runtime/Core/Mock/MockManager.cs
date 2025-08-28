@@ -70,7 +70,7 @@ namespace CnoomFramework.Core.Mock
             _frameworkManager.StartModule(mockImplementation);
 
             // 发布模块Mock事件
-            _frameworkManager.EventBus.Publish(new ModuleMockedEvent(interfaceType, mockImplementation));
+            _frameworkManager.EventBus.Broadcast(new ModuleMockedEvent(interfaceType, mockImplementation));
 
             FrameworkLogger.LogInfo($"成功替换模块 {interfaceType.Name} 为Mock实现");
             return true;
@@ -121,7 +121,7 @@ namespace CnoomFramework.Core.Mock
             _mockModules.Remove(interfaceType);
 
             // 发布模块恢复事件
-            _frameworkManager.EventBus.Publish(new ModuleUnmockedEvent(interfaceType, originalModule));
+            _frameworkManager.EventBus.Broadcast(new ModuleUnmockedEvent(interfaceType, originalModule));
 
             FrameworkLogger.LogInfo($"成功恢复模块 {interfaceType.Name} 的原始实现");
             return true;

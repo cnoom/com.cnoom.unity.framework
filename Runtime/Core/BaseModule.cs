@@ -131,7 +131,7 @@ namespace CnoomFramework.Core
             State = newState;
 
             // 发布状态变更事件
-            EventBus?.Publish(new ModuleStateChangedEvent(Name, oldState, newState));
+            EventBus?.Broadcast(new ModuleStateChangedEvent(Name, oldState, newState));
         }
 
         /// <summary>

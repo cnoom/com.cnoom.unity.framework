@@ -137,9 +137,9 @@ namespace CnoomFramework.Editor
             {
                 // 订阅性能相关事件
                 var eventBus = FrameworkManager.Instance.EventBus;
-                eventBus.Subscribe<PerformanceDataUpdatedEvent>(OnPerformanceDataUpdated);
-                eventBus.Subscribe<PerformanceMonitorStatusChangedEvent>(OnPerformanceMonitorStatusChanged);
-                eventBus.Subscribe<PerformanceStatsResetEvent>(OnPerformanceStatsReset);
+                eventBus.SubscribeBroadcast<PerformanceDataUpdatedEvent>(OnPerformanceDataUpdated);
+                eventBus.SubscribeBroadcast<PerformanceMonitorStatusChangedEvent>(OnPerformanceMonitorStatusChanged);
+                eventBus.SubscribeBroadcast<PerformanceStatsResetEvent>(OnPerformanceStatsReset);
             }
             catch (Exception ex)
             {

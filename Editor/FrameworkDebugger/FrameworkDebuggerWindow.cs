@@ -213,14 +213,14 @@ namespace CnoomFramework.Editor
             var eventBus = FrameworkManager.Instance.EventBus;
 
             // 订阅框架事件
-            eventBus.Subscribe<ModuleRegisteredEvent>(OnModuleRegistered);
-            eventBus.Subscribe<ModuleUnregisteredEvent>(OnModuleUnregistered);
-            eventBus.Subscribe<ModuleStateChangedEvent>(OnModuleStateChanged);
-            eventBus.Subscribe<ConfigChangedEvent>(OnConfigChanged);
-            eventBus.Subscribe<ConfigSavedEvent>(OnConfigSaved);
-            eventBus.Subscribe<ConfigLoadedEvent>(OnConfigLoaded);
-            eventBus.Subscribe<PerformanceDataUpdatedEvent>(OnPerformanceDataUpdated);
-            eventBus.Subscribe<PerformanceMonitorStatusChangedEvent>(OnPerformanceMonitorStatusChanged);
+            eventBus.SubscribeBroadcast<ModuleRegisteredEvent>(OnModuleRegistered);
+            eventBus.SubscribeBroadcast<ModuleUnregisteredEvent>(OnModuleUnregistered);
+            eventBus.SubscribeBroadcast<ModuleStateChangedEvent>(OnModuleStateChanged);
+            eventBus.SubscribeBroadcast<ConfigChangedEvent>(OnConfigChanged);
+            eventBus.SubscribeBroadcast<ConfigSavedEvent>(OnConfigSaved);
+            eventBus.SubscribeBroadcast<ConfigLoadedEvent>(OnConfigLoaded);
+            eventBus.SubscribeBroadcast<PerformanceDataUpdatedEvent>(OnPerformanceDataUpdated);
+            eventBus.SubscribeBroadcast<PerformanceMonitorStatusChangedEvent>(OnPerformanceMonitorStatusChanged);
         }
 
         private void OnModuleRegistered(ModuleRegisteredEvent evt)

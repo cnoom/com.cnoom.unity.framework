@@ -8,27 +8,48 @@ namespace CnoomFramework.Core.EventBuss.Interfaces
     public interface IEventBus
     {
         /// <summary>
-        ///     发布事件
+        ///     广播
         /// </summary>
         /// <typeparam name="T">事件类型</typeparam>
         /// <param name="eventData">事件数据</param>
-        void Publish<T>(T eventData) where T : notnull;
+        void Broadcast<T>(T eventData) where T : notnull;
 
         /// <summary>
-        /// 订阅事件
+        /// 订阅广播
         /// </summary>
         /// <typeparam name="T">事件类型</typeparam>
         /// <param name="handler">处理事件的委托</param>
         /// <param name="priority">事件处理优先级，默认为1，值越小优先级越高</param>
         /// <param name="isAsync">是否异步</param>
-        void Subscribe<T>(Action<T> handler, int priority = 1, bool isAsync = false) where T : notnull;
+        void SubscribeBroadcast<T>(Action<T> handler, int priority = 1, bool isAsync = false) where T : notnull;
 
         /// <summary>
-        ///     取消订阅事件
+        ///     取消订阅广播事件
         /// </summary>
         /// <typeparam name="T">事件类型</typeparam>
         /// <param name="handler">事件处理器</param>
-        void Unsubscribe<T>(Action<T> handler) where T : notnull;
+        void UnsubscribeBroadcast<T>(Action<T> handler) where T : notnull;
+
+        /// <summary>
+        /// 单播
+        /// </summary>
+        /// <typeparam name="T">事件类型</typeparam>
+        /// <param name="data">事件数据</param>
+        void Unicast<T>(T data) where T : notnull;
+
+        /// <summary>
+        /// 订阅单播事件
+        /// </summary>
+        /// <typeparam name="T">事件类型</typeparam>
+        /// <param name="h">处理事件的委托</param>
+        /// <param name="replace">是否替换已存在的处理器，默认为true，表示如果已有相同的处理器则替换</param>
+        public void SubscribeUnicast<T>(Action<T> h, bool replace = true) where T : notnull;
+
+        /// <summary>
+        /// 取消订阅单播事件
+        /// </summary>
+        /// <typeparam name="T">事件类型</typeparam>
+        public void UnsubscribeUnicast<T>();
 
         /// <summary>
         ///     请求-响应模式

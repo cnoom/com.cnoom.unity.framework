@@ -92,7 +92,7 @@ namespace CnoomFramework.Core.Performance
         private void SubscribeToConfigChanges()
         {
             if (FrameworkManager.Instance.EventBus != null)
-                FrameworkManager.Instance.EventBus.Subscribe<ConfigChangedEvent>(OnConfigChanged);
+                FrameworkManager.Instance.EventBus.SubscribeBroadcast<ConfigChangedEvent>(OnConfigChanged);
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace CnoomFramework.Core.Performance
             var stats = PerformanceMonitor.GetAllStats();
             var eventBus = FrameworkManager.Instance.EventBus;
 
-            foreach (var pair in stats) eventBus.Publish(new PerformanceDataUpdatedEvent(pair.Key, pair.Value));
+            foreach (var pair in stats) eventBus.Broadcast(new PerformanceDataUpdatedEvent(pair.Key, pair.Value));
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace CnoomFramework.Core.Performance
         private void PublishStatusChangedEvent()
         {
             var eventBus = FrameworkManager.Instance.EventBus;
-            eventBus.Publish(new PerformanceMonitorStatusChangedEvent(PerformanceMonitor.IsEnabled));
+            eventBus.Broadcast(new PerformanceMonitorStatusChangedEvent(PerformanceMonitor.IsEnabled));
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace CnoomFramework.Core.Performance
         public void ResetAllStats()
         {
             PerformanceMonitor.ResetAllStats();
-            FrameworkManager.Instance.EventBus.Publish(new PerformanceStatsResetEvent());
+            FrameworkManager.Instance.EventBus.Broadcast(new PerformanceStatsResetEvent());
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace CnoomFramework.Core.Performance
         public void ResetStats(string operationName)
         {
             PerformanceMonitor.ResetStats(operationName);
-            FrameworkManager.Instance.EventBus.Publish(new PerformanceStatsResetEvent(operationName));
+            FrameworkManager.Instance.EventBus.Broadcast(new PerformanceStatsResetEvent(operationName));
         }
 
         /// <summary>
