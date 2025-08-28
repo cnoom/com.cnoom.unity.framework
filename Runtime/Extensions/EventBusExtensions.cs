@@ -79,8 +79,8 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // 调用 EventBus.Broadcast.Subscribe<T>(handler, priority, isAsync)
-                var subscribe = typeof(EventBus).GetMethod(nameof(EventBus.Subscribe))
-                    .MakeGenericMethod(evType);
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.Subscribe));
+                var subscribe = methodBus.MakeGenericMethod(evType);
                 subscribe.Invoke(bus, new object[] { handler, attr.Priority, attr.IsAsync });
 
                 // 记录用于后面注销
@@ -102,8 +102,9 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.SubscribeUnicast<T>(handler, replaceIfExists)
-                var subscribe = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast))
-                    .MakeGenericMethod(evType);
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast));
+
+                var subscribe = methodBus.MakeGenericMethod(evType);
                 subscribe.Invoke(bus, new object[] { handler, attr.ReplaceIfExists });
 
                 // 注销：EventBus.UnsubscribeUnicast<T>()
@@ -131,8 +132,8 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.RegisterRequestHandler<TReq,TResp>(handler)
-                var register = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler))
-                    .MakeGenericMethod(requestType, responseType);
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler));
+                var register = methodBus.MakeGenericMethod(requestType, responseType);
                 register.Invoke(bus, new object[] { handler });
 
                 // 注销：EventBus.UnregisterRequestHandler<TReq,TResp>()
