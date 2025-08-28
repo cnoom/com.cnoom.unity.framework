@@ -997,11 +997,11 @@ namespace CnoomFramework.Editor
 
                 // 事件订阅
                 EditorGUILayout.BeginVertical(_boxStyle);
-                GUILayout.Label("事件订阅", _subHeaderStyle);
+                GUILayout.Label("广播", _subHeaderStyle);
 
                 var subscribeAttributes = selectedModule.GetType().GetMethods()
-                    .SelectMany(m => m.GetCustomAttributes(typeof(SubscribeEventAttribute), true)
-                        .Cast<SubscribeEventAttribute>()
+                    .SelectMany(m => m.GetCustomAttributes(typeof(BroadcastHandlerAttribute), true)
+                        .Cast<BroadcastHandlerAttribute>()
                         .Select(attr => new { Method = m, Attribute = attr }))
                     .ToList();
 
@@ -1012,13 +1012,13 @@ namespace CnoomFramework.Editor
                         EditorGUILayout.BeginHorizontal();
                         GUILayout.Label("订阅:", _boldLabelStyle, GUILayout.Width(100));
                         EditorGUILayout.LabelField(
-                            $"{subscription.Attribute.EventType.Name} -> {subscription.Method.Name}");
+                            $"{subscription.Method.GetParameters()[0]} -> {subscription.Method.Name}");
                         EditorGUILayout.EndHorizontal();
                     }
                 }
                 else
                 {
-                    EditorGUILayout.LabelField("无事件订阅");
+                    EditorGUILayout.LabelField("无广播订阅");
                 }
 
                 EditorGUILayout.EndVertical();
