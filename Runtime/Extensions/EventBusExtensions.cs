@@ -79,8 +79,8 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // 调用 EventBus.Broadcast.Subscribe<T>(handler, priority, isAsync)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeBroadcast),
-                    new[] { typeof(Action<>).MakeGenericType(evType), typeof(int), typeof(bool) });
+                Type type = typeof(IEventBus);
+                var methodBus = type.GetMethod(nameof(EventBus.SubscribeBroadcast));
                 var subscribe = methodBus?.MakeGenericMethod(evType);
                 subscribe?.Invoke(bus, new object[] { handler, attr.Priority, attr.IsAsync });
 
@@ -104,8 +104,7 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.SubscribeUnicast<T>(handler, replaceIfExists)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast),
-                    new[] { typeof(Action<>).MakeGenericType(evType), typeof(bool) });
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast));
 
                 var subscribe = methodBus?.MakeGenericMethod(evType);
                 subscribe?.Invoke(bus, new object[] { handler, attr.ReplaceIfExists });
@@ -136,8 +135,7 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.RegisterRequestHandler<TReq,TResp>(handler)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler),
-                    new[] { typeof(Func<,>).MakeGenericType(requestType, responseType) });
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler));
                 var register = methodBus?.MakeGenericMethod(requestType, responseType);
                 register?.Invoke(bus, new object[] { handler });
 
