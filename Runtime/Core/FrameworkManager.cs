@@ -466,6 +466,7 @@ namespace CnoomFramework.Core
 
             List<(Type, AutoRegisterModuleAttribute)> list = new List<(Type, AutoRegisterModuleAttribute)>();
             foreach (var assembly in assemblies)
+            {
                 try
                 {
                     var moduleTypes = assembly.GetTypes()
@@ -482,29 +483,30 @@ namespace CnoomFramework.Core
                         if (attr == null) continue;
                         list.Add((moduleType, attr));
                     }
-
-                    list.Sort((i1, i2) => i1.Item2.Priority.CompareTo(i2.Item2.Priority));
-                    foreach (var valueTuple in list)
-                    {
-                        try
-                        {
-                            Type moduleType = valueTuple.Item1;
-                            AutoRegisterModuleAttribute attr = valueTuple.Item2;
-                            if (Activator.CreateInstance(moduleType) is IModule module)
-                            {
-                                RegisterModuleWithoutProcess(module, attr.InterfaceType ?? module.GetType());
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogError($"创建模块 [{valueTuple.Item1.Name}] 的实例失败: {ex.Message}");
-                        }
-                    }
                 }
                 catch (Exception ex)
                 {
                     Debug.LogError($"在程序集 [{assembly.FullName}] 中发现模块时出错: {ex.Message}");
                 }
+            }
+
+            list.Sort((i1, i2) => i1.Item2.Priority.CompareTo(i2.Item2.Priority));
+            foreach (var valueTuple in list)
+            {
+                try
+                {
+                    Type moduleType = valueTuple.Item1;
+                    AutoRegisterModuleAttribute attr = valueTuple.Item2;
+                    if (Activator.CreateInstance(moduleType) is IModule module)
+                    {
+                        RegisterModuleWithoutProcess(module, attr.InterfaceType ?? module.GetType());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"创建模块 [{valueTuple.Item1.Name}] 的实例失败: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>
