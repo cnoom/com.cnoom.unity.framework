@@ -85,8 +85,7 @@ namespace CnoomFramework.Extensions
                 subscribe?.Invoke(bus, new object[] { handler, attr.Priority, attr.IsAsync });
 
                 // 记录用于后面注销
-                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeBroadcast),
-                        new[] { typeof(Action<>).MakeGenericType(evType) })
+                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeBroadcast))
                     ?.MakeGenericMethod(evType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = handler });
             }
@@ -110,8 +109,7 @@ namespace CnoomFramework.Extensions
                 subscribe?.Invoke(bus, new object[] { handler, attr.ReplaceIfExists });
 
                 // 注销：EventBus.UnsubscribeUnicast<T>()
-                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeUnicast),
-                        Type.EmptyTypes)
+                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeUnicast))
                     ?.MakeGenericMethod(evType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = null });
             }
@@ -140,8 +138,7 @@ namespace CnoomFramework.Extensions
                 register?.Invoke(bus, new object[] { handler });
 
                 // 注销：EventBus.UnregisterRequestHandler<TReq,TResp>()
-                var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterRequestHandler),
-                        Type.EmptyTypes)?
+                var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterRequestHandler))?
                     .MakeGenericMethod(requestType, responseType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unregister, Handler = null });
             }
