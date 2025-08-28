@@ -1,6 +1,6 @@
 using System;
 
-namespace CnoomFramework.Core
+namespace CnoomFramework.Core.EventBuss.Interfaces
 {
     /// <summary>
     ///     事件总线接口
@@ -20,7 +20,8 @@ namespace CnoomFramework.Core
         /// <typeparam name="T">事件类型</typeparam>
         /// <param name="handler">处理事件的委托</param>
         /// <param name="priority">事件处理优先级，默认为1，值越小优先级越高</param>
-        void Subscribe<T>(Action<T> handler, int priority = 1) where T : notnull;
+        /// <param name="isAsync">是否异步</param>
+        void Subscribe<T>(Action<T> handler, int priority = 1, bool isAsync = false) where T : notnull;
 
         /// <summary>
         ///     取消订阅事件

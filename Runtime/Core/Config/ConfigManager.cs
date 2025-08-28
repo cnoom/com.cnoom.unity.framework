@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CnoomFramework.Core.ErrorHandling;
+using CnoomFramework.Core.EventBuss.Interfaces;
 using CnoomFramework.Core.Events;
 using UnityEngine;
 

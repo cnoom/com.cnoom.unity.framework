@@ -272,7 +272,7 @@ namespace CnoomFramework.Editor
         private void RefreshModulesList()
         {
             if (!_isFrameworkInitialized) return;
-            
+
             _modules.Clear();
             _modules.AddRange(FrameworkManager.Instance.Modules);
 
@@ -1039,7 +1039,8 @@ namespace CnoomFramework.Editor
                     {
                         EditorGUILayout.BeginHorizontal();
                         GUILayout.Label("处理:", _boldLabelStyle, GUILayout.Width(100));
-                        EditorGUILayout.LabelField($"{handler.Attribute.RequestType.Name} -> {handler.Method.Name}");
+                        EditorGUILayout.LabelField(
+                            $"{handler.Method.Name}: {handler.Method.GetParameters()[0].GetType()} -> {handler.Method.ReturnParameter}");
                         EditorGUILayout.EndHorizontal();
                     }
                 }

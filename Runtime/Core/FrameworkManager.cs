@@ -7,12 +7,15 @@ using CnoomFramework.Core.Config;
 using CnoomFramework.Core.Config.Sources;
 using CnoomFramework.Core.Contracts;
 using CnoomFramework.Core.ErrorHandling;
+using CnoomFramework.Core.EventBuss.Core;
+using CnoomFramework.Core.EventBuss.Interfaces;
 using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Exceptions;
 using CnoomFramework.Core.Mock;
 using CnoomFramework.Core.Performance;
 using CnoomFrameWork.Singleton;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CnoomFramework.Core
 {
@@ -21,9 +24,9 @@ namespace CnoomFramework.Core
     /// </summary>
     public class FrameworkManager : PersistentMonoSingleton<FrameworkManager>
     {
-        [SerializeField] private bool _autoInitialize = true;
-        [SerializeField] private bool _enableDebugLog = true;
-        [SerializeField] private int _maxCachedEvents = 1000;
+        [SerializeField] private bool autoInitialize = true;
+        [SerializeField] private bool enableDebugLog = true;
+        [SerializeField] private int maxCachedEvents = 1000;
 
         private readonly Dictionary<Type, IModule> _moduleDict = new();
         private readonly Dictionary<string, IModule> _moduleDictByName = new();
@@ -73,7 +76,7 @@ namespace CnoomFramework.Core
 
         protected override void OnInitialized()
         {
-            if (_autoInitialize) Initialize();
+            if (autoInitialize) Initialize();
         }
 
         private void Update()
@@ -240,7 +243,6 @@ namespace CnoomFramework.Core
             RegisterModuleWithoutProcess(module, moduleType);
             module.Init();
             module.Start();
-            
         }
 
         private void RegisterModuleWithoutProcess(IModule module, Type moduleType)
@@ -598,9 +600,9 @@ namespace CnoomFramework.Core
 
             if (EventBus is EventBus concrete)
             {
-                concrete.MaxCachedEvents = _eventBusMaxCached;
-                concrete.MaxAsyncHandlersPerFrame = _eventBusMaxAsyncPerFrame;
-                concrete.EnableInheritanceDispatch = _eventBusEnableInheritance;
+                concrete.Core.MaxCachedEvents = _eventBusMaxCached;
+                concrete.Core.MaxAsyncHandlersPerFrame = _eventBusMaxAsyncPerFrame;
+                concrete.Core.EnableInheritanceDispatch = _eventBusEnableInheritance;
             }
         }
 

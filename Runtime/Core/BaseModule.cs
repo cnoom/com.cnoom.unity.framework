@@ -1,5 +1,7 @@
 using System;
+using CnoomFramework.Core.EventBuss.Interfaces;
 using CnoomFramework.Core.Events;
+using CnoomFramework.Extensions.CnoomFramework.Core;
 using UnityEngine;
 
 namespace CnoomFramework.Core
@@ -137,7 +139,7 @@ namespace CnoomFramework.Core
         /// </summary>
         private void RegisterEventHandlers()
         {
-            AutoRegistrationManager.RegisterTarget(this, EventBus);
+            EventBus.RegisterHandlers(this);
         }
 
         /// <summary>
@@ -145,7 +147,7 @@ namespace CnoomFramework.Core
         /// </summary>
         private void UnregisterEventHandlers()
         {
-            AutoRegistrationManager.UnregisterTarget(this, EventBus);
+            EventBus.UnregisterHandlers(this);
         }
     }
 }
