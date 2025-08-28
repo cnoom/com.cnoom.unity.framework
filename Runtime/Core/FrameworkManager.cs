@@ -464,6 +464,7 @@ namespace CnoomFramework.Core
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
+            List<(Type, AutoRegisterModuleAttribute)> list = new List<(Type, AutoRegisterModuleAttribute)>();
             foreach (var assembly in assemblies)
                 try
                 {
@@ -475,11 +476,20 @@ namespace CnoomFramework.Core
                         .ToList();
 
                     foreach (var moduleType in moduleTypes)
+                    {
+                        AutoRegisterModuleAttribute attr =
+                            moduleType.GetCustomAttribute<AutoRegisterModuleAttribute>();
+                        if (attr == null) continue;
+                        list.Add((moduleType, attr));
+                    }
+
+                    list.Sort((i1, i2) => i1.Item2.Priority.CompareTo(i2.Item2.Priority));
+                    foreach (var valueTuple in list)
+                    {
                         try
                         {
-                            AutoRegisterModuleAttribute attr =
-                                moduleType.GetCustomAttribute<AutoRegisterModuleAttribute>();
-                            if (attr == null) continue;
+                            Type moduleType = valueTuple.Item1;
+                            AutoRegisterModuleAttribute attr = valueTuple.Item2;
                             if (Activator.CreateInstance(moduleType) is IModule module)
                             {
                                 RegisterModuleWithoutProcess(module, attr.InterfaceType ?? module.GetType());
@@ -487,8 +497,9 @@ namespace CnoomFramework.Core
                         }
                         catch (Exception ex)
                         {
-                            Debug.LogError($"创建模块 [{moduleType.Name}] 的实例失败: {ex.Message}");
+                            Debug.LogError($"创建模块 [{valueTuple.Item1.Name}] 的实例失败: {ex.Message}");
                         }
+                    }
                 }
                 catch (Exception ex)
                 {

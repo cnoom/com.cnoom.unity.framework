@@ -2,14 +2,14 @@
 
 namespace CnoomFramework.Core.Attributes
 {
-    
     /// <summary>
-    /// RegisterModule 是一个用于标记类的属性，指示该类应该被注册为模块。这通常用于框架或应用程序中需要自动发现和注册组件的场景。
-    /// 通过将此属性应用于某个类，可以告知系统在启动时自动加载并初始化这个类作为可用模块之一。
+    /// 该属性用于标记需要自动注册到框架管理器中的模块类。通过此属性，可以指定模块实现的接口类型及其加载优先级。
+    ///  优先级越小越先加载
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class AutoRegisterModuleAttribute : Attribute
     {
         public Type InterfaceType;
+        public int Priority = 0;
     }
 }
