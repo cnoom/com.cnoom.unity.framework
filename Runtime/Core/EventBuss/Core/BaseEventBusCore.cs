@@ -120,6 +120,7 @@ namespace CnoomFramework.Core.EventBuss.Core
 
         protected internal void ValidateEventContract<T>(T ev) where T : notnull
         {
+#if CONTRACT_VALIDATION_FULL
             try
             {
                 var module = FrameworkManager.Instance?.GetModule("ContractValidation") as ContractValidationModule;
@@ -133,10 +134,20 @@ namespace CnoomFramework.Core.EventBuss.Core
             {
                 Debug.LogError($"Event contract error: {ex}");
             }
+#else
+            // 轻量级验证：只在开发版本中进行基本检查
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (ev == null)
+            {
+                Debug.LogWarning($"事件数据为空: {typeof(T).Name}");
+            }
+#endif
+#endif
         }
 
         protected internal void ValidateRequestContract<TReq, TResp>(TReq req)
         {
+#if CONTRACT_VALIDATION_FULL
             try
             {
                 var module = FrameworkManager.Instance?.GetModule("ContractValidation") as ContractValidationModule;
@@ -150,10 +161,14 @@ namespace CnoomFramework.Core.EventBuss.Core
             {
                 Debug.LogError($"Request contract error: {ex}");
             }
+#else
+            // 轻量级版本跳过请求-响应验证
+#endif
         }
 
         protected internal void ValidateResponseContract<TReq, TResp>(TResp resp)
         {
+#if CONTRACT_VALIDATION_FULL
             try
             {
                 var module = FrameworkManager.Instance?.GetModule("ContractValidation") as ContractValidationModule;
@@ -167,6 +182,9 @@ namespace CnoomFramework.Core.EventBuss.Core
             {
                 Debug.LogError($"Response contract error: {ex}");
             }
+#else
+            // 轻量级版本跳过响应验证
+#endif
         }
 
         protected internal void LogEvent(string action, Type evType, object evData)

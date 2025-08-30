@@ -1,4 +1,5 @@
 ﻿using System;
+using CnoomFramework.Core.EventBuss.Interfaces;
 using UnityEngine;
 
 namespace CnoomFramework.Core.EventBuss
@@ -11,7 +12,7 @@ namespace CnoomFramework.Core.EventBuss
     /// <summary>
     /// 高性能请求-响应总线 - 专为模块间数据查询优化
     /// </summary>
-    public class OptimizedRequestBus
+    public class RequestBus : IRequestEventBus
     {
         /// <summary>
         /// 发送请求并获取响应

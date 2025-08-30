@@ -31,49 +31,49 @@ namespace CnoomFramework.Core.EventBuss.Interfaces
         void UnsubscribeBroadcast<T>(Action<T> handler) where T : notnull;
 
         /// <summary>
-        /// 单播
+        /// 发送命令到目标模块
         /// </summary>
-        /// <typeparam name="T">事件类型</typeparam>
-        /// <param name="data">事件数据</param>
-        void Unicast<T>(T data) where T : notnull;
+        /// <typeparam name="T">命令类型</typeparam>
+        /// <param name="command">命令数据</param>
+        void SendCommand<T>(T command) where T : notnull;
 
         /// <summary>
-        /// 订阅单播事件
+        /// 查询模块数据
         /// </summary>
-        /// <typeparam name="T">事件类型</typeparam>
-        /// <param name="h">处理事件的委托</param>
-        /// <param name="replace">是否替换已存在的处理器，默认为true，表示如果已有相同的处理器则替换</param>
-        public void SubscribeUnicast<T>(Action<T> h, bool replace = true) where T : notnull;
-
-        /// <summary>
-        /// 取消订阅单播事件
-        /// </summary>
-        /// <typeparam name="T">事件类型</typeparam>
-        public void UnsubscribeUnicast<T>();
-
-        /// <summary>
-        ///     请求-响应模式
-        /// </summary>
-        /// <typeparam name="TRequest">请求类型</typeparam>
+        /// <typeparam name="TQuery">查询类型</typeparam>
         /// <typeparam name="TResponse">响应类型</typeparam>
-        /// <param name="request">请求数据</param>
+        /// <param name="query">查询数据</param>
         /// <returns>响应数据</returns>
-        TResponse Request<TRequest, TResponse>(TRequest request);
+        TResponse Query<TQuery, TResponse>(TQuery query) where TQuery : notnull;
 
         /// <summary>
-        ///     注册请求处理器
+        /// 注册命令处理器
         /// </summary>
-        /// <typeparam name="TRequest">请求类型</typeparam>
-        /// <typeparam name="TResponse">响应类型</typeparam>
-        /// <param name="handler">请求处理器</param>
-        void RegisterRequestHandler<TRequest, TResponse>(Func<TRequest, TResponse> handler);
+        /// <typeparam name="T">命令类型</typeparam>
+        /// <param name="handler">命令处理函数</param>
+        /// <param name="replaceIfExists">存在时是否替换</param>
+        void RegisterCommandHandler<T>(Action<T> handler, bool replaceIfExists = true) where T : notnull;
 
         /// <summary>
-        ///     取消注册请求处理器
+        /// 注册查询处理器
         /// </summary>
-        /// <typeparam name="TRequest">请求类型</typeparam>
+        /// <typeparam name="TQuery">查询类型</typeparam>
         /// <typeparam name="TResponse">响应类型</typeparam>
-        void UnregisterRequestHandler<TRequest, TResponse>();
+        /// <param name="handler">查询处理函数</param>
+        void RegisterQueryHandler<TQuery, TResponse>(Func<TQuery, TResponse> handler) where TQuery : notnull;
+
+        /// <summary>
+        /// 取消注册命令处理器
+        /// </summary>
+        /// <typeparam name="T">命令类型</typeparam>
+        void UnregisterCommandHandler<T>() where T : notnull;
+
+        /// <summary>
+        /// 取消注册查询处理器
+        /// </summary>
+        /// <typeparam name="TQuery">查询类型</typeparam>
+        /// <typeparam name="TResponse">响应类型</typeparam>
+        void UnregisterQueryHandler<TQuery, TResponse>() where TQuery : notnull;
 
         /// <summary>
         ///     清空所有事件订阅

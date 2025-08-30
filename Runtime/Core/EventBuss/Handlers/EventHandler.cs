@@ -15,8 +15,8 @@ namespace CnoomFramework.Core.EventBuss.Handlers
             IsAsync = isAsync;
         }
 
-        public int Priority { get; }
-        public bool IsAsync { get; }
+        public int Priority { get; protected set; }
+        public bool IsAsync { get; protected set; }
 
         public abstract void Invoke(object eventData);
     }
@@ -26,7 +26,7 @@ namespace CnoomFramework.Core.EventBuss.Handlers
     /// </summary>
     internal sealed class GenericEventHandler : EventHandler
     {
-        private readonly Delegate _handler;
+        private Delegate _handler;
 
         public GenericEventHandler(Delegate handler, int priority, bool isAsync)
             : base(priority, isAsync) => _handler = handler;
@@ -36,6 +36,14 @@ namespace CnoomFramework.Core.EventBuss.Handlers
         public override void Invoke(object ev) => _handler?.DynamicInvoke(ev);
 
         public bool EqualsDelegate<T>(Action<T> a) where T : notnull => _handler != null && _handler.Equals(a);
+
+
+        public void SetHandler<T>(Action<T> handler, int priority, bool isAsync)
+        {
+            _handler = handler;
+            Priority = priority;
+            IsAsync = isAsync;
+        }
     }
 
     /// <summary>

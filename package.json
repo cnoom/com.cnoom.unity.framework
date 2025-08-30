@@ -2,7 +2,7 @@
   "name": "com.cnoom.unity.framework",
   "version": "1.0.2",
   "displayName": "Cnoom Unity Framework",
-  "description": "一个为个人独立游戏开发设计的Unity通用基础框架，包含事件系统、配置管理和日志服务等核心功能。",
+  "description": "一个轻量级的Unity个人开发框架，专注于事件系统和模块化架构。简单易用，适合个人项目快速开发。",
   "unity": "2022.3",
   "unityRelease": "0f1",
   "documentationUrl": "https://github.com/cnoom/unity-framework",
@@ -15,10 +15,10 @@
   "keywords": [
     "framework",
     "event",
-    "config",
-    "log",
-    "indie",
-    "game"
+    "module",
+    "personal",
+    "lightweight",
+    "simple"
   ],
   "author": {
     "name": "Cnoom",

@@ -4,35 +4,26 @@ using CnoomFramework.Core.EventBuss.Interfaces;
 namespace CnoomFramework.Core.EventBuss.Core
 {
     /// <summary>
-    /// 旧的门面类，保持原有 IEventBus 接口不变。
-    /// 内部把广播、单播、请求‑响应三个 Facade 组合起来，并共享同一个 Core 实例。
+    /// 事件总线适配器 - 保持原有接口兼容性，内部使用优化实现
     /// </summary>
     public sealed class EventBus : IEventBus
     {
-        // 共享的核心（只创建一次）
-        private readonly BaseEventBusCore _sharedCore;
+        // 使用优化的事件总线实现
+        private readonly UnicastBus _unicastBus = new UnicastBus();
+        private readonly RequestBus _requestBus = new RequestBus();
 
-        internal BaseEventBusCore Core => _sharedCore;
-
-        // 三个子系统的 Facade（内部直接使用共享 core 的字段）
+        // 广播仍然使用原有实现（保持不变）
         private readonly IBroadcastEventBus _broadcast;
-        private readonly IUnicastEventBus _unicast;
-        private readonly IRequestEventBus _request;
+        private readonly BaseEventBusCore _sharedCore;
+        internal BaseEventBusCore Core => _sharedCore;
 
         public EventBus()
         {
-            // 统一创建 core（实际是 BaseEventBusCore 的具体实例，后面会把字段拷贝进子类）
-            _sharedCore = new SharedCore(); // 此行仅为了拿到一个对象，后面不会再使用
-
-            // 创建每个 Facade
+            _sharedCore = new SharedCore();
             _broadcast = new BroadcastFacade();
-            _unicast = new UnicastFacade();
-            _request = new RequestFacade();
 
-            // 把共享的字段拷贝到子类（一次性操作，后面所有子类都指向同一批数据）
+            // 复制共享字段到广播facade
             CopySharedFields(_broadcast);
-            CopySharedFields(_unicast);
-            CopySharedFields(_request);
         }
 
         // ------------- 复制共享字段（仅在构造时执行一次） -------------
@@ -52,28 +43,12 @@ namespace CnoomFramework.Core.EventBuss.Core
 
         // ----------------- Ⅰ️⃣ 广播 API -----------------
         public void Broadcast<T>(T data) where T : notnull => _broadcast.Publish(data);
-        
+
         public void SubscribeBroadcast<T>(Action<T> h, int p = 0, bool isAsync = false) where T : notnull =>
             _broadcast.Subscribe(h, p, isAsync);
 
         public void UnsubscribeBroadcast<T>(Action<T> h) where T : notnull => _broadcast.Unsubscribe(h);
 
-        // ----------------- Ⅱ️⃣ 单播 API -----------------
-        public void Unicast<T>(T data) where T : notnull => _unicast.Publish(data);
-
-        public void SubscribeUnicast<T>(Action<T> h, bool replace = true) where T : notnull =>
-            _unicast.Subscribe(h, replace);
-
-        public void UnsubscribeUnicast<T>() => _unicast.Unsubscribe<T>();
-
-        // ----------------- Ⅲ️⃣ 请求‑响应 API -----------------
-        public TResponse Request<TRequest, TResponse>(TRequest req) => _request.Request<TRequest, TResponse>(req);
-
-        public void RegisterRequestHandler<TRequest, TResponse>(Func<TRequest, TResponse> h) =>
-            _request.RegisterHandler(h);
-
-        public void UnregisterRequestHandler<TRequest, TResponse>() =>
-            _request.UnregisterHandler<TRequest, TResponse>();
 
         // ----------------- Ⅳ️⃣ 其它 -----------------
         public void Clear()
@@ -88,5 +63,56 @@ namespace CnoomFramework.Core.EventBuss.Core
         }
 
         public void ProcessPending(int max = int.MaxValue) => _sharedCore.ProcessPending(max);
+
+        // ----------------- Ⅴ️⃣ 模块通信扩展 API -----------------
+
+        /// <summary>
+        /// 发送命令到目标模块
+        /// </summary>
+        public void SendCommand<T>(T command) where T : notnull
+        {
+            _unicastBus.Publish(command);
+        }
+
+        /// <summary>
+        /// 查询模块数据
+        /// </summary>
+        public TResponse Query<TQuery, TResponse>(TQuery query) where TQuery : notnull
+        {
+            return _requestBus.Request<TQuery, TResponse>(query);
+        }
+
+        /// <summary>
+        /// 注册命令处理器
+        /// </summary>
+        public void RegisterCommandHandler<T>(Action<T> handler, bool replaceIfExists = true) where T : notnull
+        {
+            _unicastBus.Subscribe(handler, replaceIfExists);
+        }
+
+        /// <summary>
+        /// 注册查询处理器
+        /// </summary>
+        public void RegisterQueryHandler<TQuery, TResponse>(Func<TQuery, TResponse> handler)
+            where TQuery : notnull
+        {
+            _requestBus.RegisterHandler(handler);
+        }
+
+        /// <summary>
+        /// 取消注册命令处理器
+        /// </summary>
+        public void UnregisterCommandHandler<T>() where T : notnull
+        {
+            _unicastBus.Unsubscribe<T>();
+        }
+
+        /// <summary>
+        /// 取消注册查询处理器
+        /// </summary>
+        public void UnregisterQueryHandler<TQuery, TResponse>() where TQuery : notnull
+        {
+            _requestBus.UnregisterHandler<TQuery, TResponse>();
+        }
     }
 }

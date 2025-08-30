@@ -103,13 +103,13 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.SubscribeUnicast<T>(handler, replaceIfExists)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.SubscribeUnicast));
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterCommandHandler));
 
                 var subscribe = methodBus?.MakeGenericMethod(evType);
                 subscribe?.Invoke(bus, new object[] { handler, attr.ReplaceIfExists });
 
                 // 注销：EventBus.UnsubscribeUnicast<T>()
-                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnsubscribeUnicast))
+                var unsubscribe = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterCommandHandler))
                     ?.MakeGenericMethod(evType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = null });
             }
@@ -133,12 +133,12 @@ namespace CnoomFramework.Extensions
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
                 // EventBus.RegisterRequestHandler<TReq,TResp>(handler)
-                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterRequestHandler));
+                var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterQueryHandler));
                 var register = methodBus?.MakeGenericMethod(requestType, responseType);
                 register?.Invoke(bus, new object[] { handler });
 
                 // 注销：EventBus.UnregisterRequestHandler<TReq,TResp>()
-                var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterRequestHandler))?
+                var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterQueryHandler))?
                     .MakeGenericMethod(requestType, responseType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unregister, Handler = null });
             }
