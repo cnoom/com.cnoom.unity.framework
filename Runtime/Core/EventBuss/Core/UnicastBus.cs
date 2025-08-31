@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using CnoomFramework.Core.EventBuss.Core;
 using CnoomFramework.Core.EventBuss.Interfaces;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace CnoomFramework.Core.EventBuss
     /// <summary>
     /// 高性能单播事件总线 - 专为模块间命令通信优化
     /// </summary>
-    public class UnicastBus : IUnicastEventBus
+    internal class UnicastBus : BaseEventBusCore, IUnicastEventBus
     {
         private readonly ConcurrentDictionary<Type, Delegate> _handlers = new();
 

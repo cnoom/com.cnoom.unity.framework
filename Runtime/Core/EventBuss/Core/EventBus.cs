@@ -9,8 +9,8 @@ namespace CnoomFramework.Core.EventBuss.Core
     public sealed class EventBus : IEventBus
     {
         // 使用优化的事件总线实现
-        private readonly UnicastBus _unicastBus = new UnicastBus();
-        private readonly RequestBus _requestBus = new RequestBus();
+        private readonly IUnicastEventBus _unicastBus = new UnicastBus();
+        private readonly IRequestEventBus _requestBus = new RequestBus();
 
         // 广播仍然使用原有实现（保持不变）
         private readonly IBroadcastEventBus _broadcast;
@@ -20,7 +20,7 @@ namespace CnoomFramework.Core.EventBuss.Core
         public EventBus()
         {
             _sharedCore = new SharedCore();
-            _broadcast = new BroadcastFacade();
+            _broadcast = new BroadcastBus();
 
             // 复制共享字段到广播facade
             CopySharedFields(_broadcast);

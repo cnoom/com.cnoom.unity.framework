@@ -12,22 +12,16 @@ namespace CnoomFramework.Core.EventBuss.Core
     /// 高性能广播实现（一对多）
     /// 优化点：无锁设计、委托缓存、对象池
     /// </summary>
-    internal sealed class BroadcastFacade : IBroadcastEventBus
+    internal sealed class BroadcastBus : BaseEventBusCore,IBroadcastEventBus
     {
-        // 使用线程安全的字典，避免锁竞争
-        private readonly ConcurrentDictionary<Type, List<EventHandler>> _eventHandlers = new();
         
-        // 事件缓存（限制大小避免内存泄漏）
-        private readonly ConcurrentQueue<CachedEvent> _cachedEvents = new();
-        private const int MaxCachedEvents = 100;
-
         // 对象池用于重用 GenericEventHandler
         private static readonly ConcurrentBag<GenericEventHandler> HandlerPool = new();
 
         public void Publish<T>(T eventData) where T : notnull
         {
             if (eventData == null) return;
-            
+
             var evType = typeof(T);
             LogEvent("Publish", evType, eventData);
 
@@ -41,22 +35,23 @@ namespace CnoomFramework.Core.EventBuss.Core
                 CacheEvent(evType, eventData);
             }
         }
-
+        
+        // 建议使用基类的 ProcessCachedEvents 方法
         public void Subscribe<T>(Action<T> handler, int priority = 0, bool isAsync = false) where T : notnull
         {
             var evType = typeof(T);
             var eventHandler = GetOrCreateHandler(handler, priority, isAsync);
-
-            // 使用原子操作添加处理器
+    
             var handlers = _eventHandlers.GetOrAdd(evType, _ => new List<EventHandler>());
-            lock (handlers) // 只锁单个类型的处理器列表
+            lock (handlers)
             {
                 handlers.Add(eventHandler);
-                handlers.Sort((a, b) => b.Priority.CompareTo(a.Priority)); // 按优先级排序
+                handlers.Sort((a, b) => b.Priority.CompareTo(a.Priority));
             }
-
-            // 处理缓存的事件
-            ProcessCachedEvents(evType);
+    
+            ProcessCachedEvents(evType, cachedEvent => 
+                InvokeHandlers(GetMatchingHandlers(cachedEvent.EventType), 
+                    cachedEvent.EventType, cachedEvent.EventData));
         }
 
         public void Unsubscribe<T>(Action<T> handler) where T : notnull
@@ -66,10 +61,15 @@ namespace CnoomFramework.Core.EventBuss.Core
             {
                 lock (handlers)
                 {
-                    handlers.RemoveAll(h => 
-                        h is GenericEventHandler genericHandler && 
-                        genericHandler.EqualsDelegate(handler));
-                    
+                    handlers.RemoveAll(h =>
+                        {
+                            if (h is not GenericEventHandler genericHandler || !genericHandler.EqualsDelegate(handler))
+                                return false;
+                            ReturnHandlerToPool(genericHandler);
+                            return true;
+
+                        }
+                    );
                     if (handlers.Count == 0)
                     {
                         _eventHandlers.TryRemove(evType, out _);
@@ -130,31 +130,10 @@ namespace CnoomFramework.Core.EventBuss.Core
             {
                 _cachedEvents.TryDequeue(out _);
             }
-            
-            _cachedEvents.Enqueue(new CachedEvent(eventType, eventData,DateTime.Now));
+
+            _cachedEvents.Enqueue(new CachedEvent(eventType, eventData, DateTime.Now));
         }
 
-        private void ProcessCachedEvents(Type eventType)
-        {
-            // 处理特定类型的所有缓存事件
-            var eventsToProcess = new List<CachedEvent>();
-            
-            foreach (var cachedEvent in _cachedEvents)
-            {
-                if (cachedEvent.EventType == eventType)
-                {
-                    eventsToProcess.Add(cachedEvent);
-                }
-            }
-
-            foreach (var cachedEvent in eventsToProcess)
-            {
-                if (_eventHandlers.TryGetValue(eventType, out var handlers))
-                {
-                    InvokeHandlers(handlers, cachedEvent.EventType, cachedEvent.EventData);
-                }
-            }
-        }
 
         private GenericEventHandler GetOrCreateHandler<T>(Action<T> handler, int priority, bool isAsync)
         {
@@ -164,7 +143,7 @@ namespace CnoomFramework.Core.EventBuss.Core
                 pooledHandler.SetHandler(handler, priority, isAsync);
                 return pooledHandler;
             }
-            
+
             // 创建新的处理器
             return new GenericEventHandler(handler, priority, isAsync);
         }
@@ -176,9 +155,9 @@ namespace CnoomFramework.Core.EventBuss.Core
 
         private void LogEvent(string operation, Type eventType, object eventData)
         {
-            #if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             Debug.Log($"[EventBus] {operation}: {eventType.Name} - {eventData}");
-            #endif
+#endif
         }
     }
 }

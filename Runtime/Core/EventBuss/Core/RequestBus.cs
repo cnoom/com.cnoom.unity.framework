@@ -1,55 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
+using CnoomFramework.Core.EventBuss.Core;
 using CnoomFramework.Core.EventBuss.Interfaces;
 using UnityEngine;
 
 namespace CnoomFramework.Core.EventBuss
 {
-    internal static class RequestHandlers<TRequest, TResponse>
-    {
-        public static Func<TRequest, TResponse> Handler;
-    }
-
     /// <summary>
     /// 高性能请求-响应总线 - 专为模块间数据查询优化
     /// </summary>
-    public class RequestBus : IRequestEventBus
+    internal class RequestBus : BaseEventBusCore, IRequestEventBus
     {
-        /// <summary>
-        /// 发送请求并获取响应
-        /// </summary>
+        // ✅ 使用基类的 _requestHandlers 字段替代静态类
         public TResponse Request<TRequest, TResponse>(TRequest request)
         {
-            if (request == null) return default;
-
-            var handler = RequestHandlers<TRequest, TResponse>.Handler;
-            if (handler != null)
+            var key = (typeof(TRequest), typeof(TResponse));
+            if (_requestHandlers.TryGetValue(key, out var handler))
             {
-                try
-                {
-                    return handler(request);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"Request handler error: {ex}");
-                    return default;
-                }
+                return ((Func<TRequest, TResponse>)handler)(request);
             }
 
-#if UNITY_EDITOR
-            Debug.LogWarning($"No handler registered for request: {typeof(TRequest).Name}->{typeof(TResponse).Name}");
-#endif
             return default;
         }
 
-        /// <summary>
-        /// 注册请求处理器
-        /// </summary>
         public void RegisterHandler<TRequest, TResponse>(Func<TRequest, TResponse> handler)
         {
             if (handler == null) return;
-
-            RequestHandlers<TRequest, TResponse>.Handler = handler;
-
+            var key = (typeof(TRequest), typeof(TResponse));
+            _requestHandlers[key] = handler;
 #if UNITY_EDITOR
             Debug.Log($"Registered request handler for: {typeof(TRequest).Name}->{typeof(TResponse).Name}");
 #endif
@@ -60,7 +38,8 @@ namespace CnoomFramework.Core.EventBuss
         /// </summary>
         public void UnregisterHandler<TRequest, TResponse>()
         {
-            RequestHandlers<TRequest, TResponse>.Handler = null;
+            var key = (typeof(TRequest), typeof(TResponse));
+            _requestHandlers.Remove(key, out object o);
         }
     }
 }
