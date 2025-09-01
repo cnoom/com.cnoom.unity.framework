@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿﻿﻿using System;
 using UnityEngine;
 
 namespace CnoomFrameWork.Singleton
@@ -17,15 +17,21 @@ namespace CnoomFrameWork.Singleton
         /// </summary>
         protected virtual void Awake()
         {
+            Debug.Log($"[MonoSingleton] {typeof(T).Name} Awake 被调用");
+            
             if (instance == null)
             {
+                Debug.Log($"[MonoSingleton] 设置 {typeof(T).Name} 为单例实例");
                 instance = this as T;
 
                 // Initialize existing instance
+                Debug.Log($"[MonoSingleton] 开始初始化 {typeof(T).Name} 单例");
                 InitializeSingleton();
+                Debug.Log($"[MonoSingleton] {typeof(T).Name} 单例初始化完成");
             }
             else
             {
+                Debug.Log($"[MonoSingleton] 检测到 {typeof(T).Name} 重复实例，即将销毁");
                 // Destory duplicates
                 if (Application.isPlaying)
                     Destroy(gameObject);
@@ -62,6 +68,8 @@ namespace CnoomFrameWork.Singleton
             {
                 if (instance == null)
                 {
+                    Debug.Log($"[MonoSingleton] {typeof(T).Name} 实例不存在，开始查找或创建");
+                    
 #if UNITY_6000
                     instance = FindAnyObjectByType<T>();
 #else
@@ -69,10 +77,18 @@ namespace CnoomFrameWork.Singleton
 #endif
                     if (instance == null)
                     {
+                        Debug.Log($"[MonoSingleton] 未找到 {typeof(T).Name} 实例，创建新实例");
                         var obj = new GameObject();
                         obj.name = typeof(T).Name;
+                        Debug.Log($"[MonoSingleton] GameObject 创建完成，即将添加组件");
                         instance = obj.AddComponent<T>();
+                        Debug.Log($"[MonoSingleton] 组件添加完成，调用OnMonoSingletonCreated");
                         instance.OnMonoSingletonCreated();
+                        Debug.Log($"[MonoSingleton] {typeof(T).Name} 实例创建完成");
+                    }
+                    else
+                    {
+                        Debug.Log($"[MonoSingleton] 找到现有 {typeof(T).Name} 实例");
                     }
                 }
 
@@ -110,12 +126,27 @@ namespace CnoomFrameWork.Singleton
 
         public virtual void InitializeSingleton()
         {
-            if (initializationStatus != SingletonInitializationStatus.None) return;
+            Debug.Log($"[MonoSingleton] InitializeSingleton 被调用 - {typeof(T).Name}");
+            
+            if (initializationStatus != SingletonInitializationStatus.None) 
+            {
+                Debug.Log($"[MonoSingleton] {typeof(T).Name} 已初始化，跳过");
+                return;
+            }
 
+            Debug.Log($"[MonoSingleton] 设置 {typeof(T).Name} 状态为Initializing");
             initializationStatus = SingletonInitializationStatus.Initializing;
+            
+            Debug.Log($"[MonoSingleton] 调用 {typeof(T).Name} OnInitializing");
             OnInitializing();
+            
+            Debug.Log($"[MonoSingleton] 设置 {typeof(T).Name} 状态为Initialized");
             initializationStatus = SingletonInitializationStatus.Initialized;
+            
+            Debug.Log($"[MonoSingleton] 调用 {typeof(T).Name} OnInitialized");
             OnInitialized();
+            
+            Debug.Log($"[MonoSingleton] {typeof(T).Name} InitializeSingleton 完成");
         }
 
         public virtual void ClearSingleton()

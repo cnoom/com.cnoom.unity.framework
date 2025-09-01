@@ -126,7 +126,8 @@ namespace CnoomFramework.Core.Config
         /// <inheritdoc />
         public void SetValue<T>(string key, T value, bool persistent = true)
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (string.IsNullOrEmpty(key)) throw new ArgumentException("Key cannot be empty", nameof(key));
 
             // 获取第一个支持持久化的配置源（如果需要持久化）
             IConfigSource targetSource = null;

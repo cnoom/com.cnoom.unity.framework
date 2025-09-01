@@ -3,6 +3,7 @@ using CnoomFramework.Core.Attributes;
 using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Exceptions;
 using CnoomFramework.Utils;
+using UnityEngine;
 
 namespace CnoomFramework.Core.Contracts
 {
@@ -24,13 +25,21 @@ namespace CnoomFramework.Core.Contracts
 
         protected override void OnInit()
         {
-            // 创建轻量级验证器
-            ContractValidator = new LightweightContractValidator();
-            
-            // 默认禁用，开发者可以手动启用
-            ContractValidator.SetEnabled(false);
+            try
+            {
+                // 创建轻量级验证器
+                ContractValidator = new LightweightContractValidator();
+                
+                // 默认禁用，开发者可以手动启用
+                ContractValidator.SetEnabled(false);
 
-            FrameworkLogger.LogInfo("轻量级契约验证模块初始化完成");
+                FrameworkLogger.LogInfo("轻量级契约验证模块初始化完成");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[契约验证] 初始化失败，将禁用功能: {ex.Message}");
+                ContractValidator = null;
+            }
         }
 
         protected override void OnStart()

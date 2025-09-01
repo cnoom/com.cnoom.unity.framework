@@ -44,7 +44,26 @@ namespace CnoomFramework.Core
 
             try
             {
-                EventBus = FrameworkManager.Instance.EventBus;
+                var frameworkManager = FrameworkManager.Instance;
+                
+                // 确保框架已经初始化
+                if (!frameworkManager.IsInitialized)
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot initialize module {Name}: FrameworkManager is not initialized. " +
+                        "Please call FrameworkManager.Instance.Initialize() before registering modules.");
+                }
+                
+                EventBus = frameworkManager.EventBus;
+                
+                // 确保 EventBus 不为 null
+                if (EventBus == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot initialize module {Name}: EventBus is null. " +
+                        "FrameworkManager may not be properly initialized.");
+                }
+                
                 RegisterEventHandlers();
                 OnInit();
                 SetState(ModuleState.Initialized);

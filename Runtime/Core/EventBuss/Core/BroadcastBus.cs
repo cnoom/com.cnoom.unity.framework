@@ -25,8 +25,9 @@ namespace CnoomFramework.Core.EventBuss.Core
             var evType = typeof(T);
             LogEvent("Publish", evType, eventData);
 
-            // 获取处理器（无锁读取）
-            if (_eventHandlers.TryGetValue(evType, out var handlers) && handlers.Count > 0)
+            // 使用 GetMatchingHandlers 获取正确排序的处理器，保证优先级正确
+            var handlers = GetMatchingHandlers(evType);
+            if (handlers.Count > 0)
             {
                 InvokeHandlers(handlers, evType, eventData);
             }
@@ -46,7 +47,8 @@ namespace CnoomFramework.Core.EventBuss.Core
             lock (handlers)
             {
                 handlers.Add(eventHandler);
-                handlers.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+                // 使用升序排列，与 BaseEventBusCore.GetMatchingHandlers 保持一致（值越小优先级越高）
+                handlers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
             }
     
             ProcessCachedEvents(evType, cachedEvent => 
@@ -80,14 +82,8 @@ namespace CnoomFramework.Core.EventBuss.Core
 
         private void InvokeHandlers(List<EventHandler> handlers, Type eventType, object eventData)
         {
-            // 复制处理器列表以避免并发修改问题
-            EventHandler[] handlersCopy;
-            lock (handlers)
-            {
-                handlersCopy = handlers.ToArray();
-            }
-
-            foreach (var handler in handlersCopy)
+            // handlers 已经是从 GetMatchingHandlers 返回的正确排序列表，直接使用
+            foreach (var handler in handlers)
             {
                 try
                 {
@@ -123,17 +119,6 @@ namespace CnoomFramework.Core.EventBuss.Core
             });
         }
 
-        private void CacheEvent(Type eventType, object eventData)
-        {
-            // 限制缓存大小
-            while (_cachedEvents.Count >= MaxCachedEvents)
-            {
-                _cachedEvents.TryDequeue(out _);
-            }
-
-            _cachedEvents.Enqueue(new CachedEvent(eventType, eventData, DateTime.Now));
-        }
-
 
         private GenericEventHandler GetOrCreateHandler<T>(Action<T> handler, int priority, bool isAsync)
         {
@@ -151,13 +136,6 @@ namespace CnoomFramework.Core.EventBuss.Core
         private void ReturnHandlerToPool(GenericEventHandler handler)
         {
             HandlerPool.Add(handler);
-        }
-
-        private void LogEvent(string operation, Type eventType, object eventData)
-        {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            Debug.Log($"[EventBus] {operation}: {eventType.Name} - {eventData}");
-#endif
         }
     }
 }

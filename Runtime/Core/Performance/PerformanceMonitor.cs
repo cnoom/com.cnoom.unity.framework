@@ -124,7 +124,7 @@ namespace CnoomFramework.Core.Performance
         /// </summary>
         public void ResetAllStats()
         {
-            foreach (var stats in _statsDict.Values) stats.Reset();
+            _statsDict.Clear();
         }
 
         /// <summary>

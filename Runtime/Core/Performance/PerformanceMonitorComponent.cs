@@ -9,10 +9,22 @@ namespace CnoomFramework.Core.Performance
     internal class PerformanceMonitorComponent : MonoBehaviour
     {
         private PerformanceMonitorModule _module;
+        private bool _isUpdating;
 
         private void Update()
         {
-            if (_module != null) _module.Update();
+            // 防止递归调用
+            if (_isUpdating || _module == null) return;
+            
+            _isUpdating = true;
+            try
+            {
+                _module.Update();
+            }
+            finally
+            {
+                _isUpdating = false;
+            }
         }
 
         /// <summary>

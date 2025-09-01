@@ -1,3 +1,4 @@
+using System;
 using CnoomFramework.Core.Attributes;
 using CnoomFramework.Core.Events;
 using UnityEngine;
@@ -32,19 +33,38 @@ namespace CnoomFramework.Core.Performance
             PerformanceMonitor = Performance.PerformanceMonitor.Instance;
             _lastUpdateTime = Time.realtimeSinceStartup;
 
-            // 从配置中读取设置
-            if (FrameworkManager.Instance.ConfigManager != null)
+            // 延迟读取配置以避免循环依赖
+            try
             {
-                _updateInterval = FrameworkManager.Instance.ConfigManager.GetValue("Performance.UpdateInterval", 1.0f);
-                _autoPublishUpdates =
-                    FrameworkManager.Instance.ConfigManager.GetValue("Performance.AutoPublishUpdates", true);
-                var enableMonitoring =
-                    FrameworkManager.Instance.ConfigManager.GetValue("Performance.EnableMonitoring", true);
-                PerformanceMonitor.SetEnabled(enableMonitoring);
+                // 从配置中读取设置
+                if (FrameworkManager.Instance?.ConfigManager != null)
+                {
+                    _updateInterval = FrameworkManager.Instance.ConfigManager.GetValue("Performance.UpdateInterval", 1.0f);
+                    _autoPublishUpdates =
+                        FrameworkManager.Instance.ConfigManager.GetValue("Performance.AutoPublishUpdates", true);
+                    var enableMonitoring =
+                        FrameworkManager.Instance.ConfigManager.GetValue("Performance.EnableMonitoring", true);
+                    PerformanceMonitor.SetEnabled(enableMonitoring);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[PerformanceMonitor] 配置读取失败，使用默认配置: {ex.Message}");
+                // 使用默认配置
+                _updateInterval = 1.0f;
+                _autoPublishUpdates = true;
+                PerformanceMonitor.SetEnabled(true);
             }
 
-            // 订阅配置变更事件
-            SubscribeToConfigChanges();
+            // 延迟订阅配置变更事件
+            try
+            {
+                SubscribeToConfigChanges();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[PerformanceMonitor] 事件订阅失败: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -52,11 +72,24 @@ namespace CnoomFramework.Core.Performance
         /// </summary>
         protected override void OnStart()
         {
+            // 在编辑器测试环境下跳过GameObject创建
+            if (!Application.isPlaying)
+            {
+                Debug.Log("[PerformanceMonitor] 在编辑器环境下跳过GameObject创建");
+                PublishStatusChangedEvent();
+                return;
+            }
+            
             // 创建性能监控组件
             var gameObject = new GameObject("PerformanceMonitorComponent");
             var component = gameObject.AddComponent<PerformanceMonitorComponent>();
             component.Initialize(this);
-            GameObject.DontDestroyOnLoad(gameObject);
+            
+            // 只在播放模式下使用 DontDestroyOnLoad
+            if (Application.isPlaying)
+            {
+                GameObject.DontDestroyOnLoad(gameObject);
+            }
 
             // 发布性能监控状态事件
             PublishStatusChangedEvent();
@@ -75,6 +108,10 @@ namespace CnoomFramework.Core.Performance
         /// </summary>
         public void Update()
         {
+            // 在测试环境下跳过更新以避免潜在的无限循环
+            if (!Application.isPlaying || State != ModuleState.Started)
+                return;
+                
             if (_autoPublishUpdates && PerformanceMonitor.IsEnabled)
             {
                 var currentTime = Time.realtimeSinceStartup;
