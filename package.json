@@ -1,6 +1,6 @@
 {
   "name": "com.cnoom.unity.framework",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "displayName": "Cnoom Unity Framework",
   "description": "一个轻量级的Unity个人开发框架，专注于事件系统和模块化架构。简单易用，适合个人项目快速开发。",
   "unity": "2022.3",
