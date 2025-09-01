@@ -1028,8 +1028,8 @@ namespace CnoomFramework.Editor
                 GUILayout.Label("请求处理", _subHeaderStyle);
 
                 var requestHandlerAttributes = selectedModule.GetType().GetMethods()
-                    .SelectMany(m => m.GetCustomAttributes(typeof(RequestHandlerAttribute), true)
-                        .Cast<RequestHandlerAttribute>()
+                    .SelectMany(m => m.GetCustomAttributes(typeof(QueryHandlerAttribute), true)
+                        .Cast<QueryHandlerAttribute>()
                         .Select(attr => new { Method = m, Attribute = attr }))
                     .ToList();
 

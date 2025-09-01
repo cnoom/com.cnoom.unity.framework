@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -45,19 +45,19 @@ namespace CnoomFramework.Extensions
                         continue;
                     }
 
-                    // ---------- 2. Unicast ----------
-                    var ucAttr = method.GetCustomAttribute<UnicastHandlerAttribute>(true);
+                    // ---------- 2. Command ----------
+                    var ucAttr = method.GetCustomAttribute<CommandHandlerAttribute>(true);
                     if (ucAttr != null)
                     {
-                        RegisterUnicast(bus, target, method, ucAttr, regList);
+                        RegisterCommand(bus, target, method, ucAttr, regList);
                         continue;
                     }
 
-                    // ---------- 3. Request ----------
-                    var rqAttr = method.GetCustomAttribute<RequestHandlerAttribute>(true);
+                    // ---------- 3. Query ----------
+                    var rqAttr = method.GetCustomAttribute<QueryHandlerAttribute>(true);
                     if (rqAttr != null)
                     {
-                        RegisterRequest(bus, target, method, regList);
+                        RegisterQuery(bus, target, method, regList);
                     }
                 }
 
@@ -90,13 +90,13 @@ namespace CnoomFramework.Extensions
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = handler });
             }
 
-            private static void RegisterUnicast(IEventBus bus, object target, MethodInfo method,
-                UnicastHandlerAttribute attr, List<RegInfo> regList)
+            private static void RegisterCommand(IEventBus bus, object target, MethodInfo method,
+                CommandHandlerAttribute attr, List<RegInfo> regList)
             {
                 var ps = method.GetParameters();
                 if (ps.Length != 1 || method.ReturnType != typeof(void))
                     throw new InvalidOperationException(
-                        $"[UnicastHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须是 void 方法且仅有一个参数。");
+                        $"[CommandHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须是 void 方法且仅有一个参数。");
 
                 var evType = ps[0].ParameterType;
                 var delegateType = typeof(Action<>).MakeGenericType(evType);
@@ -114,30 +114,30 @@ namespace CnoomFramework.Extensions
                 regList.Add(new RegInfo { UnsubscribeMethod = unsubscribe, Handler = null });
             }
 
-            private static void RegisterRequest(IEventBus bus, object target, MethodInfo method,
+            private static void RegisterQuery(IEventBus bus, object target, MethodInfo method,
                 List<RegInfo> regList)
             {
-                // 必须是 TResponse Method(TRequest req)
+                // 必须是 TResponse Method(TQuery query)
                 var ps = method.GetParameters();
                 if (ps.Length != 1)
                     throw new InvalidOperationException(
-                        $"[RequestHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须恰好有一个参数。");
+                        $"[QueryHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须恰好有一个参数。");
 
                 var requestType = ps[0].ParameterType;
                 var responseType = method.ReturnType;
                 if (responseType == typeof(void))
                     throw new InvalidOperationException(
-                        $"[RequestHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须有返回值（请求的响应）。");
+                        $"[QueryHandler] 方法 {method.DeclaringType?.FullName}.{method.Name} 必须有返回值（查询的响应）。");
 
                 var delegateType = typeof(Func<,>).MakeGenericType(requestType, responseType);
                 var handler = Delegate.CreateDelegate(delegateType, target, method, throwOnBindFailure: true);
 
-                // EventBus.RegisterRequestHandler<TReq,TResp>(handler)
+                // EventBus.RegisterQueryHandler<TReq,TResp>(handler)
                 var methodBus = typeof(EventBus).GetMethod(nameof(EventBus.RegisterQueryHandler));
                 var register = methodBus?.MakeGenericMethod(requestType, responseType);
                 register?.Invoke(bus, new object[] { handler });
 
-                // 注销：EventBus.UnregisterRequestHandler<TReq,TResp>()
+                // 注销：EventBus.UnregisterQueryHandler<TReq,TResp>()
                 var unregister = typeof(EventBus).GetMethod(nameof(EventBus.UnregisterQueryHandler))?
                     .MakeGenericMethod(requestType, responseType);
                 regList.Add(new RegInfo { UnsubscribeMethod = unregister, Handler = null });

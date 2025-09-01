@@ -136,7 +136,7 @@ namespace CnoomFramework.Core.Performance
         ///     处理配置变更事件
         /// </summary>
         /// <param name="evt">配置变更事件</param>
-        [UnicastHandler]
+        [CommandHandler]
         private void OnConfigChanged(ConfigChangedEvent evt)
         {
             switch (evt.Key)
