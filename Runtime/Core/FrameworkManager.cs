@@ -80,6 +80,7 @@ namespace CnoomFramework.Core
             Debug.Log("[FrameworkManager] OnInitialized 被调用");
             
             // 在测试环境下不自动初始化，避免卡死
+            // TODO: 长期目标是通过修复根本问题来减少对测试环境检测的依赖
             if (IsInTestEnvironment())
             {
                 Debug.Log("[FrameworkManager] 测试环境下跳过自动初始化");
@@ -581,6 +582,7 @@ namespace CnoomFramework.Core
         private void AutoDiscoverModules()
         {
             // 在测试环境下跳过自动发现模块，避免卡死
+            // TODO: 改进模块发现机制，使其在测试环境下更健壮
             if (!Application.isPlaying || IsInTestEnvironment())
             {
                 Debug.Log("[FrameworkManager] 在测试环境下跳过自动发现模块");
@@ -870,17 +872,35 @@ namespace CnoomFramework.Core
         /// <returns></returns>
         private bool IsInTestEnvironment()
         {
-            // 检查常见的测试环境标识
+            // 更精确的测试环境检测逻辑
             var stackTrace = System.Environment.StackTrace;
-            return stackTrace.Contains("NUnit") || 
-                   stackTrace.Contains("TestRunner") ||
-                   stackTrace.Contains("UnityTest") ||
-                   stackTrace.Contains("TestMethod") ||
-                   Application.productName.Contains("Test") ||
-                   System.AppDomain.CurrentDomain.GetAssemblies()
-                       .Any(a => a.FullName.ToLower().Contains("nunit") || 
-                                 a.FullName.ToLower().Contains("testrunner") ||
-                                 a.FullName.ToLower().Contains("unityengine.testtools"));
+            
+            // 1. 检查堆栈中是否有明确的测试框架调用
+            bool hasTestFrameworkInStack = stackTrace.Contains("NUnit.Framework") || 
+                                          stackTrace.Contains("UnityEngine.TestTools.TestRunner") ||
+                                          stackTrace.Contains("UnityEngine.TestRunner") ||
+                                          stackTrace.Contains("[Test]") ||
+                                          stackTrace.Contains("[UnityTest]");
+            
+            // 2. 检查是否有测试相关的程序集正在执行测试
+            bool hasActiveTestAssembly = System.AppDomain.CurrentDomain.GetAssemblies()
+                .Any(a => {
+                    var name = a.FullName.ToLower();
+                    return (name.Contains("nunit.framework") || 
+                            name.Contains("unityengine.testrunner") ||
+                            name.Contains(".tests,") ||
+                            name.Contains(".test,")) &&
+                           // 确保程序集确实在执行代码
+                           a.GetTypes().Any(t => stackTrace.Contains(t.Name));
+                });
+            
+            // 3. 检查Application状态（但更谨慎）
+            bool hasTestEnvironmentIndicators = 
+                (Application.productName.Equals("Test", System.StringComparison.OrdinalIgnoreCase) ||
+                 Application.productName.StartsWith("TestRunner", System.StringComparison.OrdinalIgnoreCase)) &&
+                !Application.isEditor; // 编辑器模式下的productName不可靠
+            
+            return hasTestFrameworkInStack || hasActiveTestAssembly || hasTestEnvironmentIndicators;
         }
     }
 }
