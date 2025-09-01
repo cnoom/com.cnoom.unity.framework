@@ -221,11 +221,6 @@ namespace CnoomFramework.Tests.Integration
         [Test]
         public void Framework_MemoryManagement_ShouldNotLeak()
         {
-            // 预期初始化失败的错误日志（此测试故意创建多个实例，会多次出现错误）
-            LogAssert.Expect(LogType.Error, new Regex("Failed to initialize module.*FrameworkManager is not initialized"));
-            LogAssert.Expect(LogType.Error, new Regex("Failed to initialize module.*FrameworkManager is not initialized"));
-            LogAssert.Expect(LogType.Error, new Regex("Failed to initialize module.*FrameworkManager is not initialized"));
-            
             // 在Unity Runtime测试环境下跳过内存测试以避免卡死
             if (Application.isPlaying && !Application.isEditor)
             {

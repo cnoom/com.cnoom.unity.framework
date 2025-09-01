@@ -24,6 +24,9 @@ namespace CnoomFramework.Tests.ErrorHandling
             // 只使用简单的测试策略
             _errorManager.RegisterRecoveryStrategy<System.Exception>(new SafeTestRecoveryStrategy());
             
+            // 设置 SafeExecutor 的错误恢复管理器
+            SafeExecutor.SetErrorRecoveryManager(_errorManager);
+            
             UnityEngine.Debug.Log("[ErrorHandlingTests] SetUp 完成");
         }
 
@@ -31,6 +34,10 @@ namespace CnoomFramework.Tests.ErrorHandling
         public void TearDown()
         {
             UnityEngine.Debug.Log("[ErrorHandlingTests] TearDown 开始");
+            
+            // 清理 SafeExecutor 的错误恢复管理器
+            SafeExecutor.SetErrorRecoveryManager(null);
+            
             _errorManager = null;
             UnityEngine.Debug.Log("[ErrorHandlingTests] TearDown 完成");
         }
@@ -58,9 +65,11 @@ namespace CnoomFramework.Tests.ErrorHandling
         [Timeout(5000)] // 5秒超时保护
         public void SafeExecutor_WithException_ShouldReturnFailure()
         {
-            // 预期日志信息 - SafeExecutor会记录错误日志和异常日志
-            LogAssert.Expect(LogType.Error, "[CnoomFramework] Unhandled exception: Test exception");
-            LogAssert.Expect(LogType.Exception, "Exception: Test exception");
+            // 预期日志信息 - 根据实际的错误处理流程预期正确的日志
+            LogAssert.Expect(LogType.Warning, "[CnoomFramework] Medium severity error: Test exception");
+            LogAssert.Expect(LogType.Log, "[CnoomFramework] Attempting recovery for Exception");
+            LogAssert.Expect(LogType.Log, "[SafeTestRecoveryStrategy] 处理异常: Exception");
+            LogAssert.Expect(LogType.Log, "[CnoomFramework] Successfully recovered from Exception: Safe test recovery completed");
             
             // Arrange
             var testException = new Exception("Test exception");
@@ -95,16 +104,18 @@ namespace CnoomFramework.Tests.ErrorHandling
         [Timeout(5000)] // 5秒超时保护
         public void SafeExecutor_WithContext_ShouldIncludeContext()
         {
-            // 预期日志信息 - SafeExecutor会记录错误日志和异常日志
-            LogAssert.Expect(LogType.Error, "[CnoomFramework] Unhandled exception: Test");
-            LogAssert.Expect(LogType.Exception, "Exception: Test");
+            // 预期日志信息 - 根据实际的错误处理流程预期正确的日志
+            LogAssert.Expect(LogType.Warning, "[CnoomFramework] Medium severity error: Test");
+            LogAssert.Expect(LogType.Log, "[CnoomFramework] Attempting recovery for Exception");
+            LogAssert.Expect(LogType.Log, "[SafeTestRecoveryStrategy] 处理异常: Exception");
+            LogAssert.Expect(LogType.Log, "[CnoomFramework] Successfully recovered from Exception: Safe test recovery completed");
             
             // Arrange
             var context = "Test Context";
             System.Action action = () => throw new Exception("Test");
 
-            // Act - 不传递context参数以避免可能的ErrorRecoveryManager问题
-            var result = SafeExecutor.ExecuteWithResult(action);
+            // Act - 传递context参数测试上下文功能
+            var result = SafeExecutor.ExecuteWithResult(action, context);
 
             // Assert
             Assert.IsFalse(result.IsSuccess, "应该返回失败结果");
@@ -308,9 +319,11 @@ namespace CnoomFramework.Tests.ErrorHandling
         [Timeout(10000)] // 10秒超时保护
         public void SafeExecutor_WithAsyncException_ShouldCatchException()
         {
-            // 预期日志信息 - SafeExecutor会记录错误日志和异常日志
-            LogAssert.Expect(LogType.Error, "[CnoomFramework] Unhandled exception: Async exception");
-            LogAssert.Expect(LogType.Exception, "Exception: Async exception");
+            // 预期日志信息 - 根据实际的错误处理流程预期正确的日志
+            LogAssert.Expect(LogType.Warning, "[CnoomFramework] Medium severity error: Async exception");
+            LogAssert.Expect(LogType.Log, "[CnoomFramework] Attempting recovery for Exception");
+            LogAssert.Expect(LogType.Log, "[SafeTestRecoveryStrategy] 处理异常: Exception");
+            LogAssert.Expect(LogType.Log, "[CnoomFramework] Successfully recovered from Exception: Safe test recovery completed");
             
             UnityEngine.Debug.Log("[ErrorHandlingTests] SafeExecutor_WithAsyncException_ShouldCatchException 开始");
             

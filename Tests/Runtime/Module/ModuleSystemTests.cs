@@ -161,12 +161,15 @@ namespace CnoomFramework.Tests.Module
 
             // 先初始化框架，再注册模块
             _frameworkManager.Initialize();
+            
+            // 记录初始化后的基础模块数量（PerformanceMonitor 和 LightweightContractValidationModule）
+            var baseModuleCount = _frameworkManager.ModuleCount;
 
             // Act
             _frameworkManager.RegisterModule(testModule);
 
             // Assert
-            Assert.AreEqual(1, _frameworkManager.ModuleCount, "应该有一个注册的模块");
+            Assert.AreEqual(baseModuleCount + 1, _frameworkManager.ModuleCount, "应该在基础模块之上增加一个注册的模块");
             Assert.IsTrue(_frameworkManager.HasModule<TestLifecycleModule>(), "应该包含注册的模块类型");
             Assert.AreEqual(testModule, _frameworkManager.GetModule<TestLifecycleModule>(), "应该返回相同的模块实例");
         }
@@ -203,13 +206,17 @@ namespace CnoomFramework.Tests.Module
             
             // 先初始化框架，再注册模块
             _frameworkManager.Initialize();
+            
+            // 记录初始化后的基础模块数量（PerformanceMonitor 和 LightweightContractValidationModule）
+            var baseModuleCount = _frameworkManager.ModuleCount;
+            
             _frameworkManager.RegisterModule(testModule);
 
             // Act
             _frameworkManager.UnregisterModule<TestLifecycleModule>();
 
             // Assert
-            Assert.AreEqual(0, _frameworkManager.ModuleCount, "模块应该被移除");
+            Assert.AreEqual(baseModuleCount, _frameworkManager.ModuleCount, "模块应该被移除，只保留基础模块");
             Assert.IsFalse(_frameworkManager.HasModule<TestLifecycleModule>(), "不应该包含已移除的模块");
             Assert.AreEqual(ModuleState.Shutdown, testModule.State, "模块应该被正确关闭");
         }
