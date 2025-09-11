@@ -30,6 +30,10 @@ namespace CnoomFramework.Core.EventBuss.Core
         protected internal int MaxCachedEvents = 1000;
         protected internal bool EnableInheritanceDispatch { get; set; } = true;
 
+        // ------------ 性能提升 ------------
+        private readonly Stack<List<EventHandler>> _eventHandlerListPool = new();
+        private Comparison<EventHandler> _eventHandlerSort = (i1, i2) => i1.Priority.CompareTo(i2.Priority);
+
         // ------------ 公共工具 ------------
 
         #region Invoke / Enqueue / Match / Cache / ProcessCached
@@ -55,7 +59,7 @@ namespace CnoomFramework.Core.EventBuss.Core
 
         protected internal List<EventHandler> GetMatchingHandlers(Type eventType)
         {
-            var result = new List<EventHandler>();
+            var result = GetList();
             lock (_lockObject)
             {
                 if (_eventHandlers.TryGetValue(eventType, out var direct)) result.AddRange(direct);
@@ -71,9 +75,9 @@ namespace CnoomFramework.Core.EventBuss.Core
                 }
             }
 
-            return result.OrderBy(h => h.Priority).ToList();
+            result.Sort(_eventHandlerSort);
+            return result;
         }
-
         protected internal void CacheEvent(Type eventType, object eventData)
         {
             lock (_lockObject)
@@ -209,7 +213,7 @@ namespace CnoomFramework.Core.EventBuss.Core
             var budget = Math.Min(safeBudget, maxHandlersToProcess);
             var processedCount = 0;
             var maxIterations = isTestEnv ? 50 : 100;
-            
+
             while (budget-- > 0 && processedCount < maxIterations)
             {
                 PendingExecution exec = null;
@@ -229,7 +233,7 @@ namespace CnoomFramework.Core.EventBuss.Core
                 {
                     Debug.LogError($"Async handler error: {ex}");
                     processedCount++; // 即使出错也计入处理数量
-                    
+
                     // 在测试环境下，如果连续出错则停止处理
                     if (isTestEnv && processedCount > 10)
                     {
@@ -238,6 +242,21 @@ namespace CnoomFramework.Core.EventBuss.Core
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region 性能提升工具
+
+        private List<EventHandler> GetList()
+        {
+            return _eventHandlerListPool.Count > 0 ? _eventHandlerListPool.Pop() : new List<EventHandler>();
+        }
+
+        protected void RecycleEventHandlerList(List<EventHandler> list)
+        {
+            list.Clear();
+            _eventHandlerListPool.Push(list);
         }
 
         #endregion

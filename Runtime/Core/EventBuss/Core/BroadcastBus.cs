@@ -12,9 +12,8 @@ namespace CnoomFramework.Core.EventBuss.Core
     /// 高性能广播实现（一对多）
     /// 优化点：无锁设计、委托缓存、对象池
     /// </summary>
-    internal sealed class BroadcastBus : BaseEventBusCore,IBroadcastEventBus
+    internal sealed class BroadcastBus : BaseEventBusCore, IBroadcastEventBus
     {
-        
         // 对象池用于重用 GenericEventHandler
         private static readonly ConcurrentBag<GenericEventHandler> HandlerPool = new();
 
@@ -30,19 +29,19 @@ namespace CnoomFramework.Core.EventBuss.Core
             if (handlers.Count > 0)
             {
                 InvokeHandlers(handlers, evType, eventData);
+                RecycleEventHandlerList(handlers);
             }
             else
             {
                 CacheEvent(evType, eventData);
             }
         }
-        
-        // 建议使用基类的 ProcessCachedEvents 方法
+
         public void Subscribe<T>(Action<T> handler, int priority = 0, bool isAsync = false) where T : notnull
         {
             var evType = typeof(T);
             var eventHandler = GetOrCreateHandler(handler, priority, isAsync);
-    
+
             var handlers = _eventHandlers.GetOrAdd(evType, _ => new List<EventHandler>());
             lock (handlers)
             {
@@ -50,10 +49,14 @@ namespace CnoomFramework.Core.EventBuss.Core
                 // 使用升序排列，与 BaseEventBusCore.GetMatchingHandlers 保持一致（值越小优先级越高）
                 handlers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
             }
-    
-            ProcessCachedEvents(evType, cachedEvent => 
-                InvokeHandlers(GetMatchingHandlers(cachedEvent.EventType), 
-                    cachedEvent.EventType, cachedEvent.EventData));
+
+            ProcessCachedEvents(evType, cachedEvent =>
+                {
+                    var list = GetMatchingHandlers(cachedEvent.EventType);
+                    InvokeHandlers(list, cachedEvent.EventType, cachedEvent.EventData);
+                    RecycleEventHandlerList(list);
+                }
+            );
         }
 
         public void Unsubscribe<T>(Action<T> handler) where T : notnull
@@ -69,7 +72,6 @@ namespace CnoomFramework.Core.EventBuss.Core
                                 return false;
                             ReturnHandlerToPool(genericHandler);
                             return true;
-
                         }
                     );
                     if (handlers.Count == 0)
