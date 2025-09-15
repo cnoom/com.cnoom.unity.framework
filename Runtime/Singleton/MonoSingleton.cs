@@ -17,15 +17,11 @@ namespace CnoomFrameWork.Singleton
         /// </summary>
         protected virtual void Awake()
         {
-            Debug.Log($"[MonoSingleton] {typeof(T).Name} Awake 被调用");
-            
             if (instance == null)
             {
-                Debug.Log($"[MonoSingleton] 设置 {typeof(T).Name} 为单例实例");
                 instance = this as T;
 
                 // Initialize existing instance
-                Debug.Log($"[MonoSingleton] 开始初始化 {typeof(T).Name} 单例");
                 InitializeSingleton();
                 Debug.Log($"[MonoSingleton] {typeof(T).Name} 单例初始化完成");
             }
