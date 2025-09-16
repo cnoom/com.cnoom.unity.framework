@@ -1,3 +1,5 @@
+using UnityEngine.PlayerLoop;
+
 namespace CnoomFramework.Core
 {
     /// <summary>
@@ -55,5 +57,13 @@ namespace CnoomFramework.Core
         ///     清理资源、自动取消事件订阅
         /// </summary>
         void Shutdown();
+    }
+
+    /// <summary>
+    /// 更新模块接口，继承自IModule，所有需要进行周期性更新的框架模块必须实现此接口。
+    /// </summary>
+    public interface IUpdateModule : IModule
+    {
+        public void Update();
     }
 }

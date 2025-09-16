@@ -32,6 +32,7 @@ namespace CnoomFramework.Core
         private readonly Dictionary<string, IModule> _moduleDictByName = new();
         private readonly List<IModule> _sortedModules = new();
         private readonly List<IModule> _modules = new();
+        private readonly List<IUpdateModule> _updateModules = new();
         private ConfigManager _configManager;
 
         private bool _eventBusEnableInheritance = true;
@@ -78,8 +79,8 @@ namespace CnoomFramework.Core
         protected override void OnInitialized()
         {
             Debug.Log("[FrameworkManager] OnInitialized 被调用");
-            
-            if (autoInitialize) 
+
+            if (autoInitialize)
             {
                 Debug.Log("[FrameworkManager] 执行自动初始化");
                 Initialize();
@@ -95,9 +96,9 @@ namespace CnoomFramework.Core
             // 跳过非运行状态或正在关闭的情况
             if (!Application.isPlaying || _isShuttingDown)
                 return;
-                
+
             // 调度事件总线异步队列
-            if (EventBus != null && EventBus is EventBus concreteEventBus) 
+            if (EventBus != null && EventBus is EventBus concreteEventBus)
                 concreteEventBus.ProcessPending();
         }
 
@@ -231,7 +232,7 @@ namespace CnoomFramework.Core
                 _isFrameworkInitialized = false;
 
                 Debug.Log("CnoomFramework 关闭完成。");
-                
+
                 // 根据运行环境选择正确的销毁方法
                 if (Application.isPlaying)
                 {
@@ -266,7 +267,7 @@ namespace CnoomFramework.Core
             catch (Exception ex)
             {
                 Debug.LogError($"Mock管理器初始化失败: {ex.Message}");
-                
+
                 // 创建一个安全的备用实现
                 MockManager = null;
                 Debug.LogWarning("Mock管理器初始化失败，相关功能将不可用");
@@ -282,19 +283,17 @@ namespace CnoomFramework.Core
 
             var moduleType = typeof(T);
             RegisterModuleWithoutProcess(module, moduleType);
-            
+
             // 如果框架已初始化，简单初始化该模块（不考虑依赖关系）
-            if (_isFrameworkInitialized)
+            if (!_isFrameworkInitialized) return;
+            try
             {
-                try
-                {
-                    InitializeModule(module);
-                    StartModule(module);
-                }
-                catch (ModuleException ex)
-                {
-                    Debug.LogWarning($"模块 [{module.Name}] 初始化失败： {ex.Message}");
-                }
+                InitializeModule(module);
+                StartModule(module);
+            }
+            catch (ModuleException ex)
+            {
+                Debug.LogWarning($"模块 [{module.Name}] 初始化失败： {ex.Message}");
             }
         }
 
@@ -317,10 +316,12 @@ namespace CnoomFramework.Core
                     {
                         throw new InvalidOperationException($"批量注册中包含重复的模块类型: {moduleType.Name}");
                     }
+
                     if (_moduleDict.ContainsKey(moduleType))
                     {
                         throw new InvalidOperationException($"模块类型 [{moduleType.Name}] 已经注册，不能重复注册。");
                     }
+
                     moduleTypes.Add(moduleType);
                 }
             }
@@ -367,6 +368,12 @@ namespace CnoomFramework.Core
             _moduleDict[moduleType] = module;
             _moduleDictByName[module.Name] = module;
             _modules.Add(module);
+
+            if (module is IUpdateModule updateModule)
+            {
+                _updateModules.Add(updateModule);
+            }
+
             // 发布模块注册事件
             EventBus?.Broadcast(new ModuleRegisteredEvent(module.Name, moduleType));
 
@@ -390,6 +397,10 @@ namespace CnoomFramework.Core
                 _moduleDictByName.Remove(module.Name);
                 _sortedModules.Remove(module);
                 _modules.Remove(module);
+                if (module is IUpdateModule updateModule)
+                {
+                    _updateModules.Remove(updateModule);
+                }
 
                 // 发布模块注销事件
                 EventBus?.Broadcast(new ModuleUnregisteredEvent(module.Name, moduleType));
@@ -579,7 +590,7 @@ namespace CnoomFramework.Core
                 Debug.Log("[FrameworkManager] 非运行时状态下跳过自动发现模块");
                 return;
             }
-            
+
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
             List<(Type, AutoRegisterModuleAttribute)> list = new List<(Type, AutoRegisterModuleAttribute)>();
@@ -680,13 +691,14 @@ namespace CnoomFramework.Core
             try
             {
                 Debug.Log("[FrameworkManager] 开始初始化错误恢复管理器");
-                
+
                 ErrorRecoveryManager = new ErrorRecoveryManager();
                 Debug.Log("[FrameworkManager] ErrorRecoveryManager 实例创建成功");
 
                 // 注册默认的恢复策略
                 ErrorRecoveryManager.RegisterRecoveryStrategy<ModuleException>(new ModuleExceptionRecoveryStrategy());
-                ErrorRecoveryManager.RegisterRecoveryStrategy<EventBusException>(new EventBusExceptionRecoveryStrategy());
+                ErrorRecoveryManager.RegisterRecoveryStrategy<EventBusException>(
+                    new EventBusExceptionRecoveryStrategy());
                 ErrorRecoveryManager.RegisterRecoveryStrategy<DependencyException>(
                     new DependencyExceptionRecoveryStrategy());
                 ErrorRecoveryManager.RegisterRecoveryStrategy<OutOfMemoryException>(new OutOfMemoryRecoveryStrategy());
@@ -703,7 +715,7 @@ namespace CnoomFramework.Core
             {
                 Debug.LogError($"[FrameworkManager] 错误恢复管理器初始化失败: {ex.Message}");
                 Debug.LogError($"详细异常: {ex}");
-                
+
                 // 创建一个简化版本
                 ErrorRecoveryManager = new ErrorRecoveryManager();
                 ErrorRecoveryManager.RegisterRecoveryStrategy<Exception>(new GenericExceptionRecoveryStrategy());
@@ -719,7 +731,7 @@ namespace CnoomFramework.Core
             try
             {
                 Debug.Log("[FrameworkManager] 开始初始化配置管理器");
-                
+
                 // 创建配置管理器
                 _configManager = new ConfigManager(EventBus);
                 Debug.Log("[FrameworkManager] ConfigManager 实例创建成功");
@@ -746,7 +758,7 @@ namespace CnoomFramework.Core
             {
                 Debug.LogError($"[FrameworkManager] 配置管理器初始化失败: {ex.Message}");
                 Debug.LogError($"详细异常: {ex}");
-                
+
                 // 创建一个最简单的配置管理器作为备用
                 _configManager = new ConfigManager(EventBus);
                 _configManager.AddConfigSource(new MemoryConfigSource());
@@ -781,12 +793,12 @@ namespace CnoomFramework.Core
         private void InitializeModules()
         {
             Debug.Log($"[FrameworkManager] 开始初始化 {_sortedModules.Count} 个模块");
-            
+
             for (int i = 0; i < _sortedModules.Count; i++)
             {
                 var module = _sortedModules[i];
-                Debug.Log($"[FrameworkManager] 初始化模块 [{i+1}/{_sortedModules.Count}]: {module.Name}");
-                
+                Debug.Log($"[FrameworkManager] 初始化模块 [{i + 1}/{_sortedModules.Count}]: {module.Name}");
+
                 var result = SafeExecutor.ExecuteWithResult(() => module.Init(), module);
                 if (!result.IsSuccess)
                 {
@@ -804,7 +816,7 @@ namespace CnoomFramework.Core
                     Debug.Log($"[FrameworkManager] 模块 {module.Name} 初始化成功");
                 }
             }
-            
+
             Debug.Log("[FrameworkManager] 所有模块初始化完成");
         }
 
@@ -814,12 +826,12 @@ namespace CnoomFramework.Core
         private void StartModules()
         {
             Debug.Log($"[FrameworkManager] 开始启动 {_sortedModules.Count} 个模块");
-            
+
             for (int i = 0; i < _sortedModules.Count; i++)
             {
                 var module = _sortedModules[i];
-                Debug.Log($"[FrameworkManager] 启动模块 [{i+1}/{_sortedModules.Count}]: {module.Name}");
-                
+                Debug.Log($"[FrameworkManager] 启动模块 [{i + 1}/{_sortedModules.Count}]: {module.Name}");
+
                 var result = SafeExecutor.ExecuteWithResult(() => module.Start(), module);
                 if (!result.IsSuccess)
                 {
@@ -837,7 +849,7 @@ namespace CnoomFramework.Core
                     Debug.Log($"[FrameworkManager] 模块 {module.Name} 启动成功");
                 }
             }
-            
+
             Debug.Log("[FrameworkManager] 所有模块启动完成");
         }
 
