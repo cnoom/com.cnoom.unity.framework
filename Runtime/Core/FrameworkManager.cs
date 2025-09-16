@@ -100,6 +100,11 @@ namespace CnoomFramework.Core
             // 调度事件总线异步队列
             if (EventBus != null && EventBus is EventBus concreteEventBus)
                 concreteEventBus.ProcessPending();
+
+            foreach (IUpdateModule module in _updateModules)
+            {
+                module.Update();
+            }
         }
 
         private void OnDestroy()
