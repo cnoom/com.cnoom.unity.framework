@@ -52,7 +52,7 @@ namespace CnoomFramework.Core.Performance
                 string methodName = $"{method.DeclaringType?.Name}.{method.Name}";
 
                 // 开始监控
-                return _monitor.BeginMethodMonitoring(methodName, moduleName, operationName);
+                return _monitor.BeginSample(operationName);
             }
             catch (Exception ex)
             {
@@ -75,7 +75,7 @@ namespace CnoomFramework.Core.Performance
 
             try
             {
-                _monitor.EndMethodMonitoring(contextId);
+                _monitor.EndSample(contextId);
             }
             catch (Exception ex)
             {
@@ -118,7 +118,7 @@ namespace CnoomFramework.Core.Performance
             string contextId = null;
             try
             {
-                contextId = _monitor.BeginMethodMonitoring(operationName, moduleName, operationName);
+                contextId = _monitor.BeginSample(operationName);
                 action?.Invoke();
             }
             catch (Exception ex)
@@ -130,7 +130,7 @@ namespace CnoomFramework.Core.Performance
             {
                 if (!string.IsNullOrEmpty(contextId))
                 {
-                    _monitor.EndMethodMonitoring(contextId);
+                    _monitor.EndSample(contextId);
                 }
             }
         }
@@ -153,7 +153,7 @@ namespace CnoomFramework.Core.Performance
             string contextId = null;
             try
             {
-                contextId = _monitor.BeginMethodMonitoring(operationName, moduleName, operationName);
+                contextId = _monitor.BeginSample(operationName);
                 return func != null ? func() : default(T);
             }
             catch (Exception ex)
@@ -165,7 +165,7 @@ namespace CnoomFramework.Core.Performance
             {
                 if (!string.IsNullOrEmpty(contextId))
                 {
-                    _monitor.EndMethodMonitoring(contextId);
+                    _monitor.EndSample(contextId);
                 }
             }
         }
@@ -196,7 +196,7 @@ namespace CnoomFramework.Core.Performance
             _monitor = monitor;
             if (_monitor != null && _monitor.IsEnabled)
             {
-                _contextId = _monitor.BeginMethodMonitoring(operationName, moduleName, operationName);
+                _contextId = _monitor.BeginSample(operationName);
             }
         }
 
@@ -204,7 +204,7 @@ namespace CnoomFramework.Core.Performance
         {
             if (!_disposed && _monitor != null && !string.IsNullOrEmpty(_contextId))
             {
-                _monitor.EndMethodMonitoring(_contextId);
+                _monitor.EndSample(_contextId);
                 _disposed = true;
             }
         }
