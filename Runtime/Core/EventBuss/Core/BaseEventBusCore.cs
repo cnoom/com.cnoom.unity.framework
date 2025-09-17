@@ -6,7 +6,6 @@ using CnoomFramework.Core.Contracts;
 using CnoomFramework.Core.EventBuss.Handlers;
 using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Exceptions;
-using CnoomFramework.Core.Performance;
 using UnityEngine;
 using EventHandler = CnoomFramework.Core.EventBuss.Handlers.EventHandler;
 
@@ -51,10 +50,7 @@ namespace CnoomFramework.Core.EventBuss.Core
                 GenericEventHandler g => $"EH.{eventType.Name}.{g.DebugName}",
                 _ => $"EH.{eventType.Name}.{handler.GetType().Name}"
             };
-            using (PerformanceUtils.SampleScope(name))
-            {
-                handler.Invoke(eventData);
-            }
+            handler.Invoke(eventData);
         }
 
         protected internal List<EventHandler> GetMatchingHandlers(Type eventType)
