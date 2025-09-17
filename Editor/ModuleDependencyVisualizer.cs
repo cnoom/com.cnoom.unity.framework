@@ -25,7 +25,7 @@ namespace CnoomFramework.Editor
         private const float NODE_HEIGHT = 60f;
         private const float NODE_SPACING = 200f;
 
-        [MenuItem("Tools/Cnoom Framework/Module Dependency Visualizer")]
+        [MenuItem(FrameworkMenuItems.MENU_ROOT + "可视化/模块可视化依赖")]
         public static void ShowWindow()
         {
             var window = GetWindow<ModuleDependencyVisualizer>("Module Dependencies");
@@ -53,7 +53,8 @@ namespace CnoomFramework.Editor
                 RefreshModuleData();
             }
 
-            _showOnlyRegisteredModules = GUILayout.Toggle(_showOnlyRegisteredModules, "仅显示已注册模块", EditorStyles.toolbarButton);
+            _showOnlyRegisteredModules =
+                GUILayout.Toggle(_showOnlyRegisteredModules, "仅显示已注册模块", EditorStyles.toolbarButton);
 
             _autoLayout = GUILayout.Toggle(_autoLayout, "自动布局", EditorStyles.toolbarButton);
 
@@ -82,7 +83,7 @@ namespace CnoomFramework.Editor
         private void DrawVisualization()
         {
             var rect = GUILayoutUtility.GetRect(0, 0, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-            
+
             // 绘制背景
             EditorGUI.DrawRect(rect, new Color(0.2f, 0.2f, 0.2f, 0.3f));
 
@@ -221,7 +222,7 @@ namespace CnoomFramework.Editor
 
             var arrowPoint1 = to - direction * arrowSize;
             var perpendicular = new Vector2(-direction.y, direction.x);
-            
+
             var arrowLeft = arrowPoint1 + perpendicular * Mathf.Sin(arrowAngle) * arrowSize;
             var arrowRight = arrowPoint1 - perpendicular * Mathf.Sin(arrowAngle) * arrowSize;
 
@@ -379,7 +380,7 @@ namespace CnoomFramework.Editor
 
             // 拓扑排序分层
             var queue = new Queue<Type>(_moduleTypes.Where(t => inDegree[t] == 0));
-            
+
             while (queue.Count > 0)
             {
                 var currentLayer = new List<Type>();
@@ -443,6 +444,7 @@ namespace CnoomFramework.Editor
             {
                 InitializeNodePositions();
             }
+
             Repaint();
         }
 

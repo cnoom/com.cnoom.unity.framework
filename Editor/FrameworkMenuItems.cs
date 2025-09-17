@@ -9,7 +9,7 @@ namespace CnoomFramework.Editor
     /// </summary>
     public static class FrameworkMenuItems
     {
-        private const string MENU_ROOT = "Cnoom Framework/";
+        public const string MENU_ROOT = "Cnoom Framework/";
 
         [MenuItem(MENU_ROOT + "主调试器窗口", false, 1)]
         public static void OpenFrameworkDebugger()
