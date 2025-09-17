@@ -12,7 +12,6 @@ using CnoomFramework.Core.EventBuss.Interfaces;
 using CnoomFramework.Core.Events;
 using CnoomFramework.Core.Exceptions;
 using CnoomFramework.Core.Mock;
-using CnoomFramework.Core.Performance;
 using CnoomFrameWork.Singleton;
 using UnityEngine;
 using UnityEngine.Serialization;
